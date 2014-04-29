@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html itemscope itemtype="http://schema.org/WebPage">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<link rel="icon" href="static/favicon.ico" type="image/vnd.microsoft.icon" />
+		<meta content="{{ title }}" about="/" property="dc:title" />
+		<meta name="viewport" content="width=device-width,initial-scale=0.6" />
+		<title>{{ title }}</title>
+		<link href="{{ STATIC_URL }}style.css" type="text/css" rel="stylesheet" />
+		{% block scripts %}{% endblock %}
+		{% block header %}{% endblock %}
+	</head>
+	<body>
+		<div id="header_wrapper" class="wrapper clearfix">
+			<div id="header" class="area">
+				{% block head %}
+				{% endblock %}
+			</div>
+		</div>
+		<div id="content_wrapper" class="wrapper clearfix">
+			<div class="column_wrapper area clearfix">
+				<div id="content" class="subarea">
+					{% block content %}
+					{% endblock %}
+				</div>
+				<div id="sidebar" class="subarea">
+					{% block sidebar %}
+					{% endblock %}
+				</div>
+			</div>
+		</div>
+		<div id="footer_wrapper" class="wrapper clearfix">
+			<div id="footer" class="area">
+				{% block footer %}
+				{% endblock %}
+			</div>
+		</div>
+	</body>
+</html>

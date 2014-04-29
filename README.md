@@ -1,4 +1,7 @@
-repo
+Agilia Linux repository
 ====
 
-Agilia Linux repository
+```
+npm install
+node server.js
+```

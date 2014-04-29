@@ -1,0 +1,17 @@
+{
+  "name": "agiliarepo",
+  "description": "Agilia Linux repository",
+  "version": "0.0.1",
+  "private": false,
+  "license": "MIT",
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/AgiliaLinux/repository.git"
+  },
+  "dependencies": {
+    "mongoose": "3.8.x",
+    "express": "4.1.x",
+    "nunjucks": "1.0.x"
+    "tar": "0.1.x"
+  }
+}
