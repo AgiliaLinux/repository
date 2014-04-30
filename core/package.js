@@ -5,6 +5,7 @@ var tar = require('tar')
 var crypto = require('crypto')
 var child_process = require('child_process');
 var path = require('path')
+var when = require('when')
 var dataFile = 'install/data.xml'
 
 function read_dep(dep) {
@@ -17,8 +18,8 @@ function read_dep(dep) {
 
 function package_data(data, filename, location, size, length, md5) {
 	return {
-		compressed_size: length,
 		md5: md5,
+		compressed_size: length,
 		name: data.name.trim(),
 		version: data.version.trim(),
 		arch: data.arch.trim(),
@@ -40,33 +41,19 @@ function package_data(data, filename, location, size, length, md5) {
 
 var proto = {
 
-	md5: function() {
-		return this.meta.md5
-	},
-
-	files: function() {
-		return this.meta.files
-	},
-
-	filesize: function() {
-		return this.length
-	},
-
 	datasize: function(filename) {
-		var self = this
-		return new Promise(function(resolve, reject){
-			if (self.size)
-				return resolve(self.size)
+		return when.promise(function(resolve, reject){
+			if (this.size)
+				return resolve(this.size)
 			child_process.exec('xz -l --robot ' + filename + ' | grep totals',
 				function (error, stdout, stderr) {
-					resolve(self.size = stdout.split('\\t')[4])
+					resolve(this.size = stdout.split('\\t')[4])
 			})
-		})
+		}).with(this)
 	},
 
 	readData: function(filename) {
-		var self = this
-		return new Promise(function(resolve, reject) {
+		return when.promise(function(resolve, reject) {
 			var xml = ''
 			var files = []
 			var hash = crypto.createHash('md5')
@@ -85,40 +72,37 @@ var proto = {
 				tarparser.write(buffer)
 			});
 
-
 			readable.on("end", function() {
-				self.files = files
 				var jsparser = new xml2js.Parser()
-				resolve(jsparser.parseString(xml), length, hash.digest('hex'))
+				resolve(files, jsparser.parseString(xml), length,
+					hash.digest('hex'))
 			})
 		})
 	},
 
 	prepareMeta: function(root) {
-		var self = this
-		return new Promise(function(resolve, reject) {
-			if (self.meta)
-				return resolve(self.meta)
-			var filename = path.basename(self.filename)
-			var location = path.dirname(self.filename)
+		return when.promise(function(resolve, reject) {
+			if (this.meta)
+				return resolve(this.meta)
+			var filename = path.basename(this.filename)
+			var location = path.dirname(this.filename)
 			// FIXME: wtf?
 			if (root)
 				location = location.substring(root.length + 1)
-			var package_data = self.readData(self.filename)
-			package_data.then(function(data, length, md5) {
-				var datasize = this.datasize(this.filename)
-				datasize.then(function(size) {
-					self.meta = package_data(data, self.filename, location,
+			var package_data = this.readData(this.filename)
+			package_data.then(function(files, data, length, md5) {
+				this.files = files
+				return this.datasize(this.filename).then(function(size) {
+					this.meta = package_data(data, this.filename, location,
 						size, length, md5)
-					resolve(self.meta)
-				})
+					resolve(this.meta)
+				}).with(this)
 			})
-		})
+		}).with(this)
 	},
 
 	metadata: function (root, callaback) {
-		var promise = this.prepareMeta(root);
-		promise.then(function(meta) { callback(meta) })
+		return this.prepareMeta(root).then(callback(meta))
 	}
 }
 
