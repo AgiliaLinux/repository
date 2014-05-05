@@ -6,6 +6,9 @@ var crypto = require('crypto')
 var child_process = require('child_process');
 var path = require('path')
 var when = require('when')
+var comparator = require('vercmp')
+var settings = require('settings')
+var mongo = require('mongo').adapter
 var dataFile = 'install/data.xml'
 
 function read_dep(dep) {
@@ -16,30 +19,39 @@ function read_dep(dep) {
 	}
 }
 
+function trim(s) {
+	return s.trim()
+}
+
 function package_data(data, filename, location, size, length, md5) {
 	return {
-		md5: md5,
-		compressed_size: length,
-		name: data.name.trim(),
-		version: data.version.trim(),
 		arch: data.arch.trim(),
 		build: parseInt(data.build.trim()),
-		short_description: data.short_description.trim(),
+		compressed_size: length,
+		conflicts: data.conflicts.trim().split(' ').map(trim),
+		config_files: data.config_files.map(trim),
+		dependencies: data.dependencies.map(read_dep),
 		description: data.description.trim(),
+		filename: filename,
+		installed_size: size,
+		location: location,
 		maintainer: {
 			name: data.mantainer.name.trim(),
 			email: data.mantainer.email.trim(),
 		},
-		installed_size: size,
-		filename: filename,
-		location: location,
-		dependencies: data.dependencies.map(read_dep),
+		md5: md5,
+		name: data.name.trim(),
+		provides: data.provides.trim().split(' ').map(trim),
+		repositories: [],
+		short_description: data.short_description.trim(),
 		suggests: data.suggests.map(read_dep),
-		tags: data.tags.map(function(tag) { return tag.trim() })
+		tags: data.tags.map(trim),
+		version: data.version.trim()
 	}
 }
 
-var proto = {
+
+var package_file_proto = {
 
 	datasize: function(filename) {
 		return when.promise(function(resolve, reject){
@@ -102,15 +114,142 @@ var proto = {
 	},
 
 	metadata: function (root, callaback) {
-		return this.prepareMeta(root).then(callback(meta))
+		return this.prepareMeta(root)
 	}
 }
 
-module.Package = function Package(filename) {
+var storable_keys = [
+	'_id', '_rev', 'add_date', 'arch', 'build', 'compressed_size',
+	'dependencies', 'description', 'filename', 'installed_size',
+	'location', 'maintainer', 'md5', 'name', 'repositories',
+    'short_description', 'suggests', 'tags', 'version'
+]
+
+var package_proto = {
+
+	load: function(data) {
+		for (var i = 0; i < storable_keys.length; ++i) {
+			var key = storable_keys[i]
+			this[key] = data[key]
+		}
+	},
+
+	save: function() {
+		var data = this(data);
+		return mongo.connection().then(function(db){
+			var searchquery = {md5: data.md5}
+			if (data._rev)
+				searchquery._rev = data._rev
+			db.save('packages', data, searchquery)
+		})
+	},
+
+	data: function() {
+		var ret = {}
+		for (var i = 0; i < storable_keys.length; ++i) {
+			var key = storable_keys[i]
+			ret[key] = this[key]
+		}
+		return ret;
+	},
+
+	recheckLatest: function(packages, path, save_inplace) {
+		var latest = packages.reduce(function(last, pkg){
+			return (pkg.compare(last) > 0) ? pkg : last;
+		})
+		packages.forEach(function(pkg) {
+			pkg.setLatest(path, pkg.md5 === latest.md5);
+			if (save_inplace)
+				pkg.save()
+		})
+		return packages
+	},
+
+	compare: function(pkg) {
+		var vcmp = comparator.strverscmp(this.get('version'). pkg.get('version'))
+		return vcmp !== 0 ? vcmp : comparator.strverscmp(this.build. pkg.build)
+	},
+
+	toString: function() {
+		return [this.name, this.version, this.arch, this.build].join('-')
+	},
+
+	fromPath: function(path) {
+		var components = path.split('/')
+		return {
+			repository: components[0],
+			osversion: components[1],
+			branch: components[2],
+			subgroup: components[3]
+		}
+	},
+
+	setLatest: function(path, is_latest) {
+		is_latest = is_latest === undefined ? true : false
+		var params = self.fromPath(path)
+		//console.log(this.toString() + ' at ' + path + ': is_latest = ' + is_latest)
+		this.repositories.forEach(function(p) {
+			for (var key in params)
+				if (p[key] !== params[key])
+					return
+			p.latest = is_latest
+		})
+	},
+
+	altVersions: function(path) {
+		var params = self.fromPath(path)
+		var query = {name: this.name, repositories: params}
+		var arch = this.queryArchSet()
+		if (arch)
+			query.arch = arch
+		return mongo.connection().then(function(db){
+			var packages = db.collection('packages').find(query)
+			return when(packages.map(function(item) { return new Package(item) }))
+		})
+	},
+
+	queryArchSet: function() {
+		if (/^..*86$/.test(this.arch))
+			return {'$in': ['x86', 'i386', 'i486', 'i586', 'i686', 'noarch', 'fw']}
+		else if (arch == 'x86_64')
+			return {'$in': ['x86_64', 'noarch', 'fw']}
+		return ''
+	},
+
+	fspath: function() {
+		return path.join(settings.server.root, this.location, this.filename)
+	},
+
+	packageFile: function() {
+		return new PackageFile(this.fspath())
+	},
+
+	packageFiles: function() {
+		return mongo.connection().then(function(db){
+			return when(db.package_files.findOne({md5: this.md5}))
+		})
+	},
+}
+
+
+module.PackageFile = function PackageFile(filename) {
 	this.filename = filename;
 	if (!fs.existsSync(filename))
 		throw new Error("bad file specified for package")
 }
 
-Package.prototype = proto
+PackageFile.prototype = package_file_proto
 
+function Package(data) { this.data = data }
+Package.prototype = package_proto
+
+var packages = {}
+module.Package = function(md5) {
+	return when.promise(function(resolve, reject) {
+		if (packages[md5])
+			return resolve(packages[md5])
+		mongo.load('packages', {md5: md5}).then(function(data) {
+			resolve(packages[md5] = new Package(data))
+		})
+	})
+}

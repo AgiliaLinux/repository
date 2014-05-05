@@ -1,27 +1,32 @@
-
 /* Scan directory for files and store it into database
  * As for now, mostly for debugging, but should be extended to useful stuff
  */
-var Package = require('package').Package
-var when = require('when')
+var PackageFile = require('package').PackageFile
 var utils = require('utils')
+var mongo = require('mongo').adapter
 
 function add_to_db(pkg, root_path, repo, is_latest) {
-	db = MongoConnection::c()->agiliarepo
-	p = pkg.metadata(root_path)
-	p.repositories = repo
-	p.add_date = new MongoDate();
+	mongo.connection().then(function(db){
+		pkg.metadata(root_path).then(function(p) {
+			var packages = db.collection('packages')
+			var files = db.collection('package_files')
 
-	p._rev = 1;
-	p.latest = int(is_latest)
-	db.packages.remove({md5: p.md5});
-	db.package_files.remove({md5: p.md5});
-	db.packages.insert($p);
-	db.package_files.insert({md5: p.md5, files: pkgfilelist()});
+			p.repositories = repo
+			p.add_date = new Date();
+			p._rev = 1;
+			p.latest = is_latest
+
+			packages.remove({md5: p.md5}, {w:1}, function(err, result) {
+				packages.insert(p)
+			})
+			files.remove({md5: p.md5}, {w:1}, function(err, result) {
+				files.insert({md5: p.md5, files: pkg.files})
+			})
+		})
+	})
 }
 
-function import_dir(dir, root, repository, osversion, branch, subgroup, latest)
-{
+function import_dir(dir, root, repository, osversion, branch, subgroup, latest) {
 	repository = repository || []
 	osversion = osversion || []
 	branch = branch || []
@@ -32,13 +37,13 @@ function import_dir(dir, root, repository, osversion, branch, subgroup, latest)
 		branch: branch,
 		subgroup: subgroup
 	}
-	utils.walk(dir, ['f'] function(files) {
+	utils.walk(dir, ['f'], function(files) {
 		files = files.filter(function(n){ return /.*\.t[gx]z/.test(file) })
 		var l = files.length
 		files.forEach(function(file, i){
 			console.log("[" + i + "/" + l + "] Importing " + file)
-			var pkg = new Package(file);
-			add_to_db(pkg, root, repo, latest)
+			var pkg = new PackageFile(file);
+			add_to_db(pkg, root, repo, int(latest))
 		})
 	})
 }
