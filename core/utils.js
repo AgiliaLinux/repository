@@ -5,7 +5,7 @@ walk_options = {
 	f: 'isFile',
 }
 
-module.walk = function(dir, options, done) {
+function walk(dir, options, done) {
 	var results = []
 	var checks = []
 	for (var i = 0; i < options.length; ++i)
@@ -40,3 +40,7 @@ module.walk = function(dir, options, done) {
 		});
 	});
 };
+
+module.exports = {
+	walk: walk
+}

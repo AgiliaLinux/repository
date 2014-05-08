@@ -1,4 +1,7 @@
 
+var settings = require('../settings')
+var comparator = require('./vercmp')
+var mongo = require('./mongo').adapter
 var fs = require('fs')
 var xml2js = require('xml2js')
 var tar = require('tar')
@@ -6,9 +9,6 @@ var crypto = require('crypto')
 var child_process = require('child_process');
 var path = require('path')
 var when = require('when')
-var comparator = require('vercmp')
-var settings = require('settings')
-var mongo = require('mongo').adapter
 var dataFile = 'install/data.xml'
 
 function read_dep(dep) {
@@ -54,14 +54,15 @@ function package_data(data, filename, location, size, length, md5) {
 var package_file_proto = {
 
 	datasize: function(filename) {
+		var self = this
 		return when.promise(function(resolve, reject){
-			if (this.size)
-				return resolve(this.size)
+			if (self.size)
+				return resolve(self.size)
 			child_process.exec('xz -l --robot ' + filename + ' | grep totals',
 				function (error, stdout, stderr) {
-					resolve(this.size = stdout.split('\\t')[4])
+					resolve(self.size = stdout.split('\\t')[4])
 			})
-		}).with(this)
+		})
 	},
 
 	readData: function(filename) {
@@ -93,24 +94,25 @@ var package_file_proto = {
 	},
 
 	prepareMeta: function(root) {
+		var self = this
 		return when.promise(function(resolve, reject) {
-			if (this.meta)
-				return resolve(this.meta)
-			var filename = path.basename(this.filename)
-			var location = path.dirname(this.filename)
+			if (self.meta)
+				return resolve(self.meta)
+			var filename = path.basename(self.filename)
+			var location = path.dirname(self.filename)
 			// FIXME: wtf?
 			if (root)
 				location = location.substring(root.length + 1)
-			var package_data = this.readData(this.filename)
+			var package_data = self.readData(self.filename)
 			package_data.then(function(files, data, length, md5) {
-				this.files = files
-				return this.datasize(this.filename).then(function(size) {
-					this.meta = package_data(data, this.filename, location,
+				self.files = files
+				return self.datasize(self.filename).then(function(size) {
+					self.meta = package_data(data, self.filename, location,
 						size, length, md5)
-					resolve(this.meta)
-				}).with(this)
+					resolve(self.meta)
+				})
 			})
-		}).with(this)
+		})
 	},
 
 	metadata: function (root, callaback) {
@@ -135,8 +137,8 @@ var package_proto = {
 	},
 
 	save: function() {
-		var data = this(data);
-		return mongo.connection().then(function(db){
+		var data = this.data();
+		return mongo.connection.then(function(db){
 			var searchquery = {md5: data.md5}
 			if (data._rev)
 				searchquery._rev = data._rev
@@ -166,8 +168,8 @@ var package_proto = {
 	},
 
 	compare: function(pkg) {
-		var vcmp = comparator.strverscmp(this.get('version'). pkg.get('version'))
-		return vcmp !== 0 ? vcmp : comparator.strverscmp(this.build. pkg.build)
+		var vcmp = comparator.vercmp(this.get('version'). pkg.get('version'))
+		return vcmp !== 0 ? vcmp : comparator.vercmp(this.build. pkg.build)
 	},
 
 	toString: function() {
@@ -202,7 +204,7 @@ var package_proto = {
 		var arch = this.queryArchSet()
 		if (arch)
 			query.arch = arch
-		return mongo.connection().then(function(db){
+		return mongo.connection.then(function(db){
 			var packages = db.collection('packages').find(query)
 			return when(packages.map(function(item) { return new Package(item) }))
 		})
@@ -232,7 +234,7 @@ var package_proto = {
 }
 
 
-module.PackageFile = function PackageFile(filename) {
+function PackageFile(filename) {
 	this.filename = filename;
 	if (!fs.existsSync(filename))
 		throw new Error("bad file specified for package")
@@ -240,16 +242,20 @@ module.PackageFile = function PackageFile(filename) {
 
 PackageFile.prototype = package_file_proto
 
-function Package(data) { this.data = data }
+function Package(data) { this.load(data) }
 Package.prototype = package_proto
 
+
 var packages = {}
-module.Package = function(md5) {
+module.exports = {
+	PackageFile: PackageFile,
+	Package: function(md5) {
 	return when.promise(function(resolve, reject) {
 		if (packages[md5])
 			return resolve(packages[md5])
 		mongo.load('packages', {md5: md5}).then(function(data) {
-			resolve(packages[md5] = new Package(data))
+				resolve(packages[md5] = new Package(data))
+			})
 		})
-	})
+	}
 }

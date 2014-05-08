@@ -14,6 +14,7 @@
     "express": "4.1.x",
     "nunjucks": "1.0.x",
     "when": "3.1.x",
-    "tar": "0.1.x"
+    "tar": "0.1.x",
+    "xml2js": "0.4.x"
   }
 }

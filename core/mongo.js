@@ -1,6 +1,6 @@
 
+var settings = require('../settings')
 var MongoClient = require('mongodb').MongoClient
-var settings = require('settings')
 var when = require('when')
 var _ = require('underscore')
 
@@ -9,21 +9,19 @@ function MongoAdapter() {
 	var self = this
 	this._db = null
 
-	function connection(){
-		return when.promise(function(resolve, reject) {
-			if (self._db)
-				return resolve(self._db)
-			MongoClient.connect(settings.mongodb.server,
-				settings.mongodb.options, function(error, db) {
-					if (error)
-						return reject(error)
-					resolve(self._db = db)
-				})
-		})
-	}
+	this.connection = when.promise(function(resolve, reject) {
+		if (self._db)
+			return resolve(self._db)
+		MongoClient.connect(settings.mongodb.server,
+			settings.mongodb.options, function(error, db) {
+				if (error)
+					return reject(error)
+				resolve(self._db = db)
+			})
+	})
 
-	function load(collection, query){
-		return this.connection().then(function(db) {
+	this.load = function(collection, query){
+		return this.connection.then(function(db) {
 			return when.promise(function(resolve, reject) {
 				db.collection(collection).findOne(query, function(err, item) {
 					if (err)
@@ -34,8 +32,8 @@ function MongoAdapter() {
 		})
 	}
 
-	function save(collection, data, search_query, dry_run) {
-		return this.connection().then(function(db) {
+	this.save = function(collection, data, search_query, dry_run) {
+		return this.connection.then(function(db) {
 			var collection = db.collection(collection)
 			var orig = collection.findOne(search_query)
 			if (_.isEqual(orig, data))
@@ -60,4 +58,6 @@ function MongoAdapter() {
 	}
 }
 
-module.adapter = new MongoAdapter()
+module.exports = {
+	adapter: new MongoAdapter()
+}
