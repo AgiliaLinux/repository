@@ -23,6 +23,8 @@ function add_to_db(pkg, root_path, repo, is_latest) {
 			files.remove({md5: p.md5}, {w:1}, function(err, result) {
 				files.insert({md5: p.md5, files: pkg.files})
 			})
+		}).else(function(err) {
+			console.log('Error at package addition:' + err)
 		})
 	})
 }

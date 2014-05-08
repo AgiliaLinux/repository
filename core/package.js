@@ -4,12 +4,9 @@ var comparator = require('./vercmp')
 var mongo = require('./mongo').adapter
 var fs = require('fs')
 var xml2js = require('xml2js')
-var tar = require('tar')
-var crypto = require('crypto')
 var child_process = require('child_process');
 var path = require('path')
 var when = require('when')
-var dataFile = 'install/data.xml'
 
 function read_dep(dep) {
 	return {
@@ -50,45 +47,72 @@ function package_data(data, filename, location, size, length, md5) {
 	}
 }
 
-
 var package_file_proto = {
 
-	datasize: function(filename) {
+	datasize: function() {
 		var self = this
 		return when.promise(function(resolve, reject){
 			if (self.size)
 				return resolve(self.size)
-			child_process.exec('xz -l --robot ' + filename + ' | grep totals',
+			child_process.exec('xz -l --robot ' + self.filename + ' | grep totals',
 				function (error, stdout, stderr) {
 					resolve(self.size = stdout.split('\\t')[4])
 			})
 		})
 	},
 
-	readData: function(filename) {
-		return when.promise(function(resolve, reject) {
-			var xml = ''
-			var files = []
-			var hash = crypto.createHash('md5')
-			var tarparser = new tar.Parser()
-			tarparser.on("entry", function (header, stream) {
-				files.push(header.name)
-				if (header.name == dataFile)
-					stream.on("data", function (chunk) { xml += chunk })
+	file: function(file) {
+		var self = this
+		return when.promise(function(resolve, reject){
+			child_process.exec('tar xf ' + self.filename + ' ' + file + ' --to-stdout',
+				function (error, stdout, stderr) {
+					resolve(stdout)
 			})
+		})
+	},
 
-			var length = 0
-			readable = fs.createReadStream(filename);
-			readable.on("data", function (buffer) {
-				length += buffer.length;
-				hash.update(buffer)
-				tarparser.write(buffer)
-			});
+	pkginfo: function() {
+		var jsparser = new xml2js.Parser()
+		return this.file('install/data.xml').then(function(xml) {
+			var parsed = jsparser.parseString(xml)
+			return parsed
+		})
+	},
 
-			readable.on("end", function() {
-				var jsparser = new xml2js.Parser()
-				resolve(files, jsparser.parseString(xml), length,
-					hash.digest('hex'))
+	md5sum: function() {
+		var self = this
+		return when.promise(function(resolve, reject){
+			child_process.exec('md5sum ' + self.filename,
+				function (error, stdout, stderr) {
+					resolve(stdout.split(' ')[0])
+			})
+		})
+	},
+
+	filelist: function() {
+		var self = this
+		return when.promise(function(resolve, reject){
+			if (self.files)
+				resolve(self.files)
+			child_process.exec('tar tf ' + self.filename,
+				function (error, stdout, stderr) {
+					var files = stdout.split('\n').map(function(x){
+						return x.trim()
+					}).filter(function(x) {
+						return x && x != './'
+					})
+					resolve(self.files = files)
+				})
+		})
+	},
+
+	filesize: function() {
+		var self = this
+		return when.promise(function(resolve, reject) {
+			fs.stat(self.filename, function (err, stats) {
+				if (err)
+					return reject(err)
+				resolve(stats.size)
 			})
 		})
 	},
@@ -103,14 +127,13 @@ var package_file_proto = {
 			// FIXME: wtf?
 			if (root)
 				location = location.substring(root.length + 1)
-			var package_data = self.readData(self.filename)
-			package_data.then(function(files, data, length, md5) {
-				self.files = files
-				return self.datasize(self.filename).then(function(size) {
-					self.meta = package_data(data, self.filename, location,
-						size, length, md5)
-					resolve(self.meta)
-				})
+			self.filelist()
+			return when.join(self.pkginfo(), when(self.filename), when(location),
+					self.datasize(), self.filesize(), self.md5sum()).then(
+						function(values){
+				return resolve(self.meta = package_data.apply(null, values))
+			}).else(function(err) {
+				return reject(err)
 			})
 		})
 	},

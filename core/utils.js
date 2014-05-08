@@ -1,7 +1,8 @@
 
 var fs = require('fs');
+var when = require('when')
 
-walk_options = {
+var walk_options = {
 	f: 'isFile',
 }
 
@@ -39,7 +40,7 @@ function walk(dir, options, done) {
 			});
 		});
 	});
-};
+}
 
 module.exports = {
 	walk: walk
