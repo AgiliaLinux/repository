@@ -7,43 +7,63 @@ var xml2js = require('xml2js')
 var child_process = require('child_process');
 var path = require('path')
 var when = require('when')
+var _ = require('underscore')
 
-function read_dep(dep) {
-	return {
-		name: dep.name.trim(),
-		condition: dep.condition.trim(),
-		version: dep.version.trim()
+function flatten_data(data) {
+	if (_.isArray(data)){
+		if (data.length < 2)
+			return flatten_data(data[0])
+		return data.map(flatten_data)
+	} else if (_.isObject(data)) {
+		var subdata = {}
+		for (var i in data)
+			subdata[i] = flatten_data(data[i]);
+		return subdata
 	}
+	return data.trim();
 }
 
-function trim(s) {
-	return s.trim()
+function promote_data(data, name) {
+	if (!data)
+		return []
+	if (!_.isArray(data) && _.isObject(data))
+		data = [data]
+
+	// FIXME: this strange way is in original source.
+	// Key must be passed instead of gessing
+	if (!name)
+		name = data[0].keys()[0]
+	return data.map(function (val) { return val[name] })
 }
 
-function package_data(data, filename, location, size, length, md5) {
+function split_data(data) {
+	if (!data)
+		return []
+	return data.replace(/\s+/g, ' ').split(' ')
+}
+
+function package_data(pkgdata, filename, location, size, length, md5) {
+	var data = flatten_data(pkgdata.package)
 	return {
-		arch: data.arch.trim(),
-		build: parseInt(data.build.trim()),
+		arch: data.arch,
+		build: parseInt(data.build),
 		compressed_size: length,
-		conflicts: data.conflicts.trim().split(' ').map(trim),
-		config_files: data.config_files.map(trim),
-		dependencies: data.dependencies.map(read_dep),
-		description: data.description.trim(),
+		conflicts: split_data(data.conflicts),
+		config_files: promote_data(data.config_files /*, 'config' */),
+		dependencies: promote_data(data.dependencies, 'dep'),
+		description: data.description,
 		filename: filename,
 		installed_size: size,
 		location: location,
-		maintainer: {
-			name: data.mantainer.name.trim(),
-			email: data.mantainer.email.trim(),
-		},
+		maintainer: data.mantainer,
 		md5: md5,
-		name: data.name.trim(),
-		provides: data.provides.trim().split(' ').map(trim),
+		name: data.name,
+		provides: split_data(data.provides),
 		repositories: [],
-		short_description: data.short_description.trim(),
-		suggests: data.suggests.map(read_dep),
-		tags: data.tags.map(trim),
-		version: data.version.trim()
+		short_description: data.short_description,
+		suggests: promote_data(data.suggest /*, 'suggest'*/),
+		tags: promote_data(data.tags, 'tag'),
+		version: data.version
 	}
 }
 
@@ -72,10 +92,14 @@ var package_file_proto = {
 	},
 
 	pkginfo: function() {
-		var jsparser = new xml2js.Parser()
 		return this.file('install/data.xml').then(function(xml) {
-			var parsed = jsparser.parseString(xml)
-			return parsed
+			return when.promise(function(resolve, reject) {
+				xml2js.parseString(xml, function(err, result) {
+					if (err)
+						return reject(err)
+					return resolve(result)
+				})
+			})
 		})
 	},
 
