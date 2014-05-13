@@ -8,7 +8,7 @@ var mongo = require('./mongo').adapter
 
 function add_to_db(pkg, root_path, repo, is_latest) {
 	return mongo.connection.then(function(db){
-		pkg.metadata(root_path).then(function(p) {
+		return pkg.metadata(root_path).then(function(p) {
 			var packages = db.collection('packages')
 			var files = db.collection('package_files')
 
@@ -16,15 +16,12 @@ function add_to_db(pkg, root_path, repo, is_latest) {
 			p.add_date = new Date()
 			p._rev = 1
 			p.latest = is_latest ? 1 : 0
-
-			packages.remove({md5: p.md5}, {w:1}, function(err, result) {
-				packages.insert(p)
+			packages.remove({md5: p.md5}, {w:0}, function(err, result) {
+				packages.insert(p, {w:0})
 			})
-			files.remove({md5: p.md5}, {w:1}, function(err, result) {
-				files.insert({md5: p.md5, files: pkg.files})
+			files.remove({md5: p.md5}, {w:0}, function(err, result) {
+				files.insert({md5: p.md5, files: pkg.files}, {w:0})
 			})
-		}).else(function(err) {
-			console.log('Error at package addition:' + err)
 		})
 	})
 }
@@ -46,12 +43,13 @@ function import_dir(dir, root, repository, osversion, branch, subgroup, latest) 
 			return console.log(err)
 		files = files.filter(function(file){ return pkg_re.test(file) })
 		var l = files.length
-		files.forEach(function(file, i){
+		var count = 1;
+		files.forEach(function(file){
 			var pkg = new PackageFile(file);
 			add_to_db(pkg, root, repo, latest).then(function() {
-				console.log("[" + (i + 1) + "/" + l + "] Imported " + file)
+				console.log("[" + (count++) + "/" + l + "] Imported " + file)
 			}).catch(function (error) {
-				console.log("[" + (i + 1) + "/" + l + "] Failed to import " +
+				console.log("[" + (count++) + "/" + l + "] Failed to import " +
 							file + " " + error)
 			})
 		})

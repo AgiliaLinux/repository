@@ -1,10 +1,10 @@
 
 var settings = require('../settings')
 var comparator = require('./vercmp')
+var utils = require('./utils')
 var mongo = require('./mongo').adapter
 var fs = require('fs')
 var xml2js = require('xml2js')
-var child_process = require('child_process');
 var path = require('path')
 var when = require('when')
 var _ = require('underscore')
@@ -26,14 +26,20 @@ function flatten_data(data) {
 function promote_data(data, name) {
 	if (!data)
 		return []
-	if (!_.isArray(data) && _.isObject(data))
-		data = [data]
 
 	// FIXME: this strange way is in original source.
-	// Key must be passed instead of gessing
-	if (!name)
-		name = data[0].keys()[0]
-	return data.map(function (val) { return val[name] })
+	// Key must be passed instead of guessing
+	if (!name) {
+		var obj = _.isArray(data) ? data[0] : data
+		name = Object.keys(obj)[0]
+		console.log('Key is ' + name)
+	}
+
+	if (_.isArray(data))
+		return data.map(function (val) { return val[name] })
+	else if (_.isObject(data))
+		return data[name]
+	return [data]
 }
 
 function split_data(data) {
@@ -42,14 +48,15 @@ function split_data(data) {
 	return data.replace(/\s+/g, ' ').split(' ')
 }
 
-function package_data(pkgdata, filename, location, size, length, md5) {
+function package_data(pkgdata, filename, location, size, length, md5, files) {
+	return {}
 	var data = flatten_data(pkgdata.package)
 	return {
 		arch: data.arch,
 		build: parseInt(data.build),
 		compressed_size: length,
 		conflicts: split_data(data.conflicts),
-		config_files: promote_data(data.config_files /*, 'config' */),
+		config_files: promote_data(data.config_files, 'conf_file'),
 		dependencies: promote_data(data.dependencies, 'dep'),
 		description: data.description,
 		filename: filename,
@@ -74,29 +81,27 @@ var package_file_proto = {
 		return when.promise(function(resolve, reject){
 			if (self.size)
 				return resolve(self.size)
-			child_process.exec('xz -l --robot ' + self.filename + ' | grep totals',
-				function (error, stdout, stderr) {
-					resolve(self.size = stdout.split('\\t')[4])
-			})
+			return utils.run('xz -l --robot ' + self.filename + ' | grep totals'
+				).then(function(data) {
+					return resolve(self.size = data.split('\\t')[4])
+			}).catch(reject)
 		})
 	},
 
 	file: function(file) {
 		var self = this
 		return when.promise(function(resolve, reject){
-			child_process.exec('tar xf ' + self.filename + ' ' + file + ' --to-stdout',
-				function (error, stdout, stderr) {
-					resolve(stdout)
-			})
+			utils.run('tar xf ' + self.filename + ' ' + file + ' --to-stdout'
+				).then(resolve).catch(reject)
 		})
 	},
 
 	pkginfo: function() {
 		return this.file('install/data.xml').then(function(xml) {
 			return when.promise(function(resolve, reject) {
-				xml2js.parseString(xml, function(err, result) {
-					if (err)
-						return reject(err)
+				xml2js.parseString(xml, function(error, result) {
+					if (error)
+						return reject(error)
 					return resolve(result)
 				})
 			})
@@ -106,10 +111,9 @@ var package_file_proto = {
 	md5sum: function() {
 		var self = this
 		return when.promise(function(resolve, reject){
-			child_process.exec('md5sum ' + self.filename,
-				function (error, stdout, stderr) {
-					resolve(stdout.split(' ')[0])
-			})
+			return utils.run('md5sum ' + self.filename).then(function(data) {
+				return resolve(data.split(' ')[0])
+			}).catch(reject)
 		})
 	},
 
@@ -117,16 +121,15 @@ var package_file_proto = {
 		var self = this
 		return when.promise(function(resolve, reject){
 			if (self.files)
-				resolve(self.files)
-			child_process.exec('tar tf ' + self.filename,
-				function (error, stdout, stderr) {
-					var files = stdout.split('\n').map(function(x){
-						return x.trim()
-					}).filter(function(x) {
-						return x && x != './'
-					})
-					resolve(self.files = files)
+				return resolve(self.files)
+			utils.run('tar tf ' + self.filename).then(function(data) {
+				var files = data.split('\n').map(function(x){
+					return x.trim()
+				}).filter(function(x) {
+					return x && x != './'
 				})
+				return resolve(self.files = files)
+			}).catch(reject)
 		})
 	},
 
@@ -136,7 +139,7 @@ var package_file_proto = {
 			fs.stat(self.filename, function (err, stats) {
 				if (err)
 					return reject(err)
-				resolve(stats.size)
+				return resolve(stats.size)
 			})
 		})
 	},
@@ -151,13 +154,15 @@ var package_file_proto = {
 			// FIXME: wtf?
 			if (root)
 				location = location.substring(root.length + 1)
-			self.filelist()
-			return when.join(self.pkginfo(), when(self.filename), when(location),
-					self.datasize(), self.filesize(), self.md5sum()).then(
-						function(values){
+
+			// Do not try to use bad archives
+			when.join(self.pkginfo(), when(self.filename),
+					when(location), self.datasize(), self.filesize(),
+					self.md5sum(), self.filelist()).then(function(values){
 				return resolve(self.meta = package_data.apply(null, values))
-			}).else(function(err) {
-				return reject(err)
+			}).catch(function (error) {
+				console.log('Bad archive ' + self.filename)
+				return reject(error)
 			})
 		})
 	},

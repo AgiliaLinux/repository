@@ -1,9 +1,29 @@
 
-var fs = require('fs');
+var pool = require('./pool').Pool
+var fs = require('fs')
 var when = require('when')
+var child_process = require('child_process')
 
 var walk_options = {
 	f: 'isFile',
+}
+
+function run_command(command) {
+	return when.promise(function(resolve, reject) {
+		pool.add(function(pool_done) {
+			child_process.exec(command, {maxBuffer: 500*1024}, function (error, stdout, stderr) {
+				pool_done()
+				if (error)
+					return reject(error)
+				var error_output = stderr.trim()
+				if (error_output) {
+					console.log(error_output)
+					//return reject(error_output)
+				}
+				return resolve(stdout)
+			})
+		})
+	})
 }
 
 function walk(dir, options, done) {
@@ -43,5 +63,6 @@ function walk(dir, options, done) {
 }
 
 module.exports = {
-	walk: walk
+	walk: walk,
+	run: run_command
 }

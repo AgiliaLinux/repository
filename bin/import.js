@@ -10,6 +10,11 @@ var arches = ['x86', 'x86_64'];
 var root = '/media/sda9/repo'
 var subgroup = 'stable'
 
+process.on('uncaughtException', function(err) {
+    // handle the error safely
+    console.log(err);
+});
+
 arches.forEach(function(arch) {
 	var dir = path.join(root, arch)
 	importer.directory(dir, root, ['master'], [osver],

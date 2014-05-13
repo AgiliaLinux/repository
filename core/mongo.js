@@ -1,9 +1,8 @@
 
 var settings = require('../settings')
-var MongoClient = require('mongodb').MongoClient
+var mongodb = require('mongodb')
 var when = require('when')
 var _ = require('underscore')
-
 
 function MongoAdapter() {
 	var self = this
@@ -12,12 +11,15 @@ function MongoAdapter() {
 	this.connection = when.promise(function(resolve, reject) {
 		if (self._db)
 			return resolve(self._db)
-		MongoClient.connect(settings.mongodb.server,
-			settings.mongodb.options, function(error, db) {
-				if (error)
-					return reject(error)
-				resolve(self._db = db)
-			})
+		var client = new mongodb.MongoClient(new mongodb.Server(
+				settings.mongodb.host, settings.mongodb.port),
+				settings.mongodb.options);
+		client.open(function (error, connection) {
+			if (error)
+				return reject(error)
+			var db = connection.db(settings.mongodb.database)
+			resolve(self._db = db)
+		})
 	})
 
 	this.load = function(collection, query){
