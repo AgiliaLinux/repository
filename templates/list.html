@@ -1,0 +1,19 @@
+
+{% extends index.html %}
+
+{% block content %}
+	<h1>Last updates in {{ repository }}</h1>
+	<ul class="pkglist pkglist_{{ render_type }}">
+	{% for package_item in packages %}
+		{% include package_short.html %}
+	{% endfor %}
+	</ul>
+	<div class="pagination">
+		Total: {{ count }} packages {% if pages.count > 1 -%}
+			at {{ pages.count }} pages
+		{%- endif %} <br />
+		{% for page in range(0, pages.count) -%}
+			<a href="{{ pages.link }{{ page }}">{{ page }}</a>
+		{%- endfor %}
+	</div>
+{% endblock %}

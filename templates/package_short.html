@@ -1,0 +1,27 @@
+<li>
+	<!--- TODO: div cannot be in a -->
+	<a class="pkglink" href="/pkgview/{{ package_item.md5 }}">
+		<div class="left">
+			<div class="title">
+				<span class="title_highlight">{{ package_item.name }}</span>
+				<span class="version_highlight">{{ package_item.version }}</span>
+			</div>
+			<div class="smalldesc">{{ package_item.short_description }}</div>
+			<div class="added">
+				Added: <span class="added_date">{{ package_item.add_date }}</span>
+				by <span class="maintainer">{{ package_item.maintainer.name }}</span>
+			</div>
+		</div>
+		<div class="right">
+			<div class="osversion">
+				{{ package_item.repositories|join(', ', attribute='osversion') }}
+			</div>
+			<div class="branch">
+				{{ package_item.repositories|map('branch_full')|join(', ') }}
+			</div>
+			<div class="tags">
+				{{ package_item.repositories|join(', ', attribute='tags') }}
+			</div>
+		</div>
+	</a>
+</li>
