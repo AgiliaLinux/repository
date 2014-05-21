@@ -1,20 +1,10 @@
 
-
-var express = require('express');
-var app = module.exports = express();
-var nunjucks = require('nunjucks');
+var express = require('express')
+var path = require('path')
 var List = require('./classes/List').ListRoute
 
-nunjucks.configure('templates', {
-	autoescape: true, express: app});
-app.use(express.static(__dirname));
 
-
-var urls = {
-	'(?:/limit/:limit)?/:page?': ['index.html', List, {type: 0}]
-}
-
-app.param(function(name, fn, dflt){
+function process_param(name, fn, dflt){
 	if (fn instanceof RegExp) {
 		return function(req, res, next, val){
 			var captures;
@@ -22,32 +12,58 @@ app.param(function(name, fn, dflt){
 				req.params[name] = captures;
 				next();
 			} else {
-			if (dflt)
-				req.params[name] = dflt;
+				if (dflt)
+					req.params[name] = dflt;
 				next('route');
 			}
 		}
 	}
-});
+}
 
-app.param('page', /^\d+$/, 1)
-app.param('limit', /^\d+$/)
-
-
-for (var url in urls) {
-	var current = urls[url]
-	var template = current[0],
-		renderer_class = current[1],
-		render_opts = current[2]
+function bind_url(app, url, params) {
+	var template = params[0],
+		renderer_class = params[1],
+		render_opts = params[2]
 
 	var Renderer = new renderer_class(render_opts || {})
 	app.get(url, function(req, res) {
-		Renderer.render(req).then(function(data) {
+		Renderer.render(req).then(function(data, status) {
+			res.status(status || 200)
 			res.render(template, data)
 		}).catch(function(error) {
-			res.render('504.html', error)
+			res.status(500)
+			res.render('500.html', {error: error})
 		})
 	})
 }
 
+function default_route(req, res, next){
+	res.status(404)
+	if (req.accepts('html'))
+		res.render('404.html', { url: req.url })
+	else if (req.accepts('json'))
+		res.send({ error: 'Not found' })
+	else
+		res.type('txt').send('Not found')
+}
 
+
+var urls_map = {
+	'(?:/limit/:limit)?/:page?': ['list.html', List, {type: 0}],
+}
+
+function init(app) {
+	app.use('/static', express.static(path.join(__dirname, 'templates', 'static')))
+	app.param(process_param);
+	app.param('page', /^\d+$/, 1)
+	app.param('limit', /^\d+$/)
+
+	for (var url in urls_map)
+		bind_url(app, url, urls_map[url])
+
+	app.use(default_route)
+}
+
+module.exports = {
+	init: init
+}

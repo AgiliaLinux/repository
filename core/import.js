@@ -5,6 +5,7 @@
 var PackageFile = require('./package').PackageFile
 var utils = require('./utils')
 var mongo = require('./mongo').adapter
+var when = require('when')
 
 function add_to_db(pkg, root_path, repo, is_latest) {
 	return mongo.connection.then(function(db){
@@ -12,15 +13,29 @@ function add_to_db(pkg, root_path, repo, is_latest) {
 			var packages = db.collection('packages')
 			var files = db.collection('package_files')
 
-			p.repositories = repo
+			p.repositories = [repo]
 			p.add_date = new Date()
 			p._rev = 1
 			p.latest = is_latest ? 1 : 0
-			packages.remove({md5: p.md5}, {w:0}, function(err, result) {
-				packages.insert(p, {w:0})
-			})
-			files.remove({md5: p.md5}, {w:0}, function(err, result) {
-				files.insert({md5: p.md5, files: pkg.files}, {w:0})
+			return when.promise(function(resolve, reject) {
+				packages.remove({md5: p.md5}, {w:0}, function(err, result) {
+					if (err)
+						return reject(err)
+					packages.insert(p, {w:0}, function(err, result) {
+						if (err)
+							return reject(err)
+						files.remove({md5: p.md5}, {w:0}, function(err, result) {
+							if (err)
+								return reject(err)
+							files.insert({md5: p.md5, files: pkg.files}, {w:0},
+								function(err, result) {
+								if(err)
+									return reject(err)
+								return resolve(result)
+							})
+						})
+					})
+				})
 			})
 		})
 	})

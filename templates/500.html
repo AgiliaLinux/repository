@@ -1,0 +1,12 @@
+
+{% extends 'index.html' %}
+
+{%block title %}Internal server error{% endblock %}
+
+{% block content %}
+	<h1>Server error occured</h1>
+	<p>{{ error }}</p>
+	{% if error.stack -%}
+	<pre>{{ error.stack }}</pre>
+	{%- endif %}
+{% endblock %}

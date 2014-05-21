@@ -49,7 +49,6 @@ function split_data(data) {
 }
 
 function package_data(pkgdata, filename, location, size, length, md5, files) {
-	return {}
 	var data = flatten_data(pkgdata.package)
 	return {
 		arch: data.arch,
@@ -155,8 +154,7 @@ var package_file_proto = {
 			if (root)
 				location = location.substring(root.length + 1)
 
-			// Do not try to use bad archives
-			when.join(self.pkginfo(), when(self.filename),
+			return when.join(self.pkginfo(), when(self.filename),
 					when(location), self.datasize(), self.filesize(),
 					self.md5sum(), self.filelist()).then(function(values){
 				return resolve(self.meta = package_data.apply(null, values))
