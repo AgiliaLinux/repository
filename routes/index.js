@@ -49,11 +49,12 @@ function default_route(req, res, next){
 
 
 var urls_map = {
-	'(?:/limit/:limit)?/:page?': ['list.html', List, {type: 0}],
+	'(?:/repo/:repository)?(?:/limit/:limit)?/:page?':
+		['list.html', List, {type: 0}],
 }
 
 function init(app) {
-	app.use('/static', express.static(path.join(__dirname, 'templates', 'static')))
+	app.use('/static', express.static(path.join(__dirname, '..', 'templates', 'static')))
 	app.param(process_param);
 	app.param('page', /^\d+$/, 1)
 	app.param('limit', /^\d+$/)

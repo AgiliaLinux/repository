@@ -1,0 +1,30 @@
+
+.wrapper {
+	width: 100%;
+}
+
+.wrapper .area {
+	width: 1170px;
+	min-width: 1170px;
+	padding-left: 30px;
+	padding-right: 30px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.subarea {
+	float: left;
+	vertical-align: top;
+}
+
+#content {
+	width: 900px;
+	margin-top: 15px;
+}
+
+#sidebar {
+	margin-left: 30px;
+	width: 240px;
+
+	margin-top: 15px;
+}

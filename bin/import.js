@@ -1,6 +1,7 @@
 #!/usr/bin/node
 
 var importer = require('../core/import')
+var settings = require('../settings')
 var path = require('path')
 
 var osver = '9.0'
@@ -17,6 +18,6 @@ process.on('uncaughtException', function(err) {
 
 arches.forEach(function(arch) {
 	var dir = path.join(root, arch)
-	importer.directory(dir, root, ['master'], [osver],
-						[branch], [subgroup], is_latest);
+	importer.directory(dir, root, settings.repository.repository,
+		osver, branch, subgroup, is_latest);
 })

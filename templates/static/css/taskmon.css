@@ -1,0 +1,35 @@
+.task_progress {
+	width: 100%;
+	height: 50px;
+	position: relative;
+	border: 1px solid #efefef;
+}
+.task_progress_bar {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+
+	background: url(/images/progress.png) repeat-x;
+	height: 100%;
+	width: 0%;
+	z-index: 1;
+	-webkit-transition: width 0.5s ease;
+	transition: width 0.5s ease;
+}
+.task_progress_text {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	z-index: 2;
+	color: black;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	line-height: 50px;
+
+}
+
+.taskprogress {
+	padding: 10px 20px;
+	margin: 20px 0px;
+}

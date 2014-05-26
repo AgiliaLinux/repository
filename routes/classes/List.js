@@ -1,6 +1,7 @@
 
 var Base = require('./Base.js').BaseRoute
 var mongo = require('../../core/mongo').adapter
+var settings = require('../../settings')
 var when = require('when')
 
 var render_types = ['Simple', 'Complex']
@@ -8,9 +9,11 @@ var render_types = ['Simple', 'Complex']
 var list_route = {
 	render: function(req) {
 		var self = this
+		var repo = req.param('repository', settings.repository.repository)
 		return when.promise(function(resolve, reject) {
 			return self.get_packages(req).then(function (packages) {
 				return resolve({
+					repository: repo,
 					render_type: render_types[self.options.type],
 					packages: packages.items,
 					count: packages.count,
@@ -30,6 +33,9 @@ var list_route = {
 		var limit = req.param('limit', 50)
 		var offset = (page - 1) * limit
 		var condition = {}
+		var repository = req.param('repository')
+		if (repository)
+			condition['repositories'] = {repository: repository}
 		return mongo.connection.then(function(db){
 			return when.promise(function(resolve, reject) {
 				return db.collection('packages', function(err, packages){

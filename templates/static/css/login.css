@@ -1,0 +1,49 @@
+
+#block-login {
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	background: #323232;
+}
+
+#login_top, #login_menu, #login_menu a {
+	color: white;
+}
+
+#login_top {
+	padding-left: 10px;
+	padding-right: 10px;
+	cursor: pointer;
+
+}
+#login_menu {
+	position: absolute;
+	right: 0px;
+	background: #323232;
+	border-radius: 0px 0px 5px 5px;
+	overflow: hidden;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-bottom: 5px;
+	display: none;
+}
+
+#login_menu input {
+	display: block;
+	padding: 5px;
+	margin: 5px;
+}
+
+#login_menu a {
+	display: block;
+	border-top: 1px solid #111;
+	text-decoration: none;
+	margin-left: -10px;
+	margin-right: -10px;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+#login_menu a:hover {
+	background: #555;
+}

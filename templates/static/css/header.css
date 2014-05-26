@@ -1,0 +1,17 @@
+#header_wrapper {
+	background-color: #323232;
+	width: 100%;
+	min-width: 1170px;
+}
+
+#header .block {
+	display: inline-block;
+	margin-right: 30px;
+	height: 50px;
+	vertical-align: middle;
+	line-height: 50px;
+}
+
+#header {
+	position: relative;
+}

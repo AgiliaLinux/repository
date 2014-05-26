@@ -1,0 +1,9 @@
+#block-menu a {
+	display: block;
+	padding: 5px;
+}
+
+
+#block-menu {
+	border: 1px solid #efefef;
+}

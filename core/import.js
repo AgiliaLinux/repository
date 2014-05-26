@@ -5,48 +5,44 @@
 var PackageFile = require('./package').PackageFile
 var utils = require('./utils')
 var mongo = require('./mongo').adapter
+var _ = require('underscore')
 var when = require('when')
 
 function add_to_db(pkg, root_path, repo, is_latest) {
-	return mongo.connection.then(function(db){
-		return pkg.metadata(root_path).then(function(p) {
-			var packages = db.collection('packages')
-			var files = db.collection('package_files')
+	return when.promise(function(resolve, reject) {
+		return mongo.connection.then(function(db){
+			return pkg.metadata(root_path).then(function(p) {
+				var packages = db.collection('packages')
+				var files = db.collection('package_files')
 
-			p.repositories = [repo]
-			p.add_date = new Date()
-			p._rev = 1
-			p.latest = is_latest ? 1 : 0
-			return when.promise(function(resolve, reject) {
-				packages.remove({md5: p.md5}, {w:0}, function(err, result) {
-					if (err)
-						return reject(err)
-					packages.insert(p, {w:0}, function(err, result) {
-						if (err)
-							return reject(err)
-						files.remove({md5: p.md5}, {w:0}, function(err, result) {
-							if (err)
-								return reject(err)
-							files.insert({md5: p.md5, files: pkg.files}, {w:0},
-								function(err, result) {
-								if(err)
-									return reject(err)
-								return resolve(result)
-							})
-						})
-					})
-				})
+				if (is_latest)
+					repo.latest = null
+
+				p.repositories = [repo]
+				p.add_date = new Date()
+				p._rev = 1
+
+				var concern = {w: 1}
+				var md5_key = {md5: p.md5}
+				var mongo_chain = [
+					[packages.remove, packages, md5_key, concern],
+					[packages.insert, packages, p, concern],
+					[files.remove, files, md5_key, concern],
+					[files.insert, files, {md5: p.md5, files: pkg.files}, concern]
+				]
+
+				mongo.generate_chain(mongo_chain, resolve, reject)()
 			})
 		})
 	})
 }
 
-var pkg_re = new RegExp(/.*\.t[gx]z/)
+var pkg_re = new RegExp(/.*\.t[gx]z$/)
 function import_dir(dir, root, repository, osversion, branch, subgroup, latest) {
-	repository = repository || []
-	osversion = osversion || []
-	branch = branch || []
-	subgroup = subgroup || []
+	repository = repository || settings.repository.repository
+	osversion = osversion || settings.repository.osversion
+	branch = branch || settings.repository.branch
+	subgroup = subgroup || settings.repository.subgroup
 	var repo = {
 		repository: repository,
 		osversion: osversion,
@@ -59,14 +55,17 @@ function import_dir(dir, root, repository, osversion, branch, subgroup, latest) 
 		files = files.filter(function(file){ return pkg_re.test(file) })
 		var l = files.length
 		var count = 1;
-		files.forEach(function(file){
+		var packages = _.map(files, function(file){
 			var pkg = new PackageFile(file);
-			add_to_db(pkg, root, repo, latest).then(function() {
+			return add_to_db(pkg, root, repo, latest).then(function() {
 				console.log("[" + (count++) + "/" + l + "] Imported " + file)
 			}).catch(function (error) {
 				console.log("[" + (count++) + "/" + l + "] Failed to import " +
 							file + " " + error)
 			})
+		})
+		when.all(packages).then(function() {
+			console.log("Folder " + dir  + " with " + l + " files processed.")
 		})
 	})
 }

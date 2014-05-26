@@ -1,0 +1,25 @@
+.path {
+	border: 1px solid #efefef;
+}
+
+.path a {
+	text-decoration: none;
+	color: #80cc28;
+	display: inline-block;
+	padding-left: 12px;
+	padding-right: 20px;
+	height: 30px;
+	line-height: 30px;
+	background-repeat: no-repeat;
+	background-position: right;
+	background-image: url(/images/pathbg_mid.png);
+}
+
+.path a:last-of-type {
+	font-weight: bold;
+	background-image: url(/images/pathbg.png);
+}
+.path a:hover {
+	text-decoration: underline;
+}
+

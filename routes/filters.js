@@ -13,7 +13,6 @@ module.exports = {
 			env.addFilter(filter, filters[filter])
 
 		env.addFilter('map', function(array, filter) {
-			console.log(array)
 			if (!(filter in env.filters))
 				throw new Error('Wrong filter name')
 			return _.map(array, _.bind(env.filters[filter], env))

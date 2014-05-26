@@ -1,0 +1,170 @@
+
+.uicore_form label {
+	width: 200px;
+	display: inline-block;
+}
+.uicore_form .field_container {
+	width: 100%;
+	padding: 5px;
+}
+.uicore_form {
+	width: 100%;
+}
+
+.image_field_image img {
+	width: 234px;
+}
+
+
+/* Slider */
+.slider {
+	width: 702px;
+	height: 408px;
+	position: relative;
+	margin-top: 15px;
+}
+.slider_container {
+	margin-bottom: 30px;
+}
+
+.slide {
+	width: 702px;
+	height: 408px;
+	background-position: center;
+	background-repeat: no-repeat;
+	position: absolute;
+	background-size: cover;
+	top: 0px;
+	left: 0px;
+	/*display: none;*/
+	opacity: 0;
+	-webkit-transition: opacity 0.5s;
+	-moz-transition: opacity 0.5s;
+	-o-transition: opacity 0.5s;
+	transition: opacity 0.5s;
+}
+.slide.active {
+	opacity: 1;
+	display: block;
+}
+
+.slider_thumbs {
+	width: 700px;
+	height: 70px;
+	padding-left: 1px;
+	padding-right: 1px;
+	background: #efefef;
+	margin-top: 10px;
+	margin-bottom: 30px;
+	position: relative;
+}
+
+.slider_thumb {
+	display: inline-block;
+	width: 140px;
+	height: 70px;
+	background-position: center;
+	background-repeat: no-repeat;
+	position: relative;
+	background-size: cover;
+}
+
+.slider_thumb_overlay {
+	position: absolute;
+	width: 140px;
+	height: 70px;
+	background: #efefef;
+	opacity: 0.5;
+	-webkit-transition: opacity 0.5s;
+	-moz-transition: opacity 0.5s;
+	-o-transition: opacity 0.5s;
+	transition: opacity 0.5s;
+	cursor: pointer;
+}
+
+.slider_thumb_overlay:hover, .slider_thumb.active .slider_thumb_overlay {
+	opacity: 0;
+}
+
+.slider_thumb:last-child {
+	margin-right: 0px;
+}
+
+
+.video_block {
+	margin-top: 20px;
+}
+
+.video_description {
+	color: #666;
+	font-size: 0.85em;
+	margin-top: 5px;
+	padding-bottom: 20px;
+}
+
+
+.uicore-table .table-cell {
+	padding: 5px 10px;
+}
+.uicore-table .table-cell-title {
+	font-weight: bold;
+}
+
+.uicore-table .table-cell-title::after {
+	content: ":";
+}
+
+.uicore-table {
+	padding: 5px 20px;
+	border: 1px solid #efefef;
+}
+
+.uicore_form .sublabel {
+	font-size: 0.8em;
+	color: #555;
+}
+
+
+.tab_nav_item {
+	display: table-cell;
+	text-align: center;
+	padding: 5px 20px;
+	cursor: pointer;
+	border: 1px solid #777;
+}
+
+.tabs_nav {
+	display: table-row;
+	width: 100%;
+	padding: 10px;
+}
+
+.tab_nav_item.active {
+	background: #333;
+	color: white;
+}
+
+.tabs {
+	width: 100%;
+	border-collapse: collapse;
+	border: 1px solid #efefef;
+	margin: 15px 0px;
+}
+.tabs_content {
+
+	padding: 10px;
+}
+.tab_content_item {
+	display: none;
+}
+.tab_content_item.active {
+	display: block;
+}
+
+.uicore_form_slide {
+	display: none;
+}
+
+.uicore_form_slide.active {
+	display: block;
+}

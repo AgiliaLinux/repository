@@ -1,0 +1,22 @@
+.meta_row {
+	display: table-row;
+}
+.meta_title, .meta_data {
+	display: table-cell;
+}
+.meta_title {
+	padding-right: 30px;
+	font-weight: bold;
+	width: 100px;
+}
+
+.meta_block {
+	display: table;
+	width: 100%;
+	padding: 10px;
+	border: 1px solid #efefef;
+	margin-top: 30px;
+	margin-bottom: 30px;
+}
+
+

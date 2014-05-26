@@ -1,0 +1,21 @@
+
+#incoming {
+	width: 100%;
+}
+.dropzone {
+	margin-bottom: 30px;
+}
+
+#multi_buttons {
+	display: none;
+}
+
+#multi_buttons input[type="button"] {
+	display: block;
+	width: 100%;
+}
+
+.package_info {
+	font-size: 0.8em;
+	color: #777;
+}

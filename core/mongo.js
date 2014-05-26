@@ -58,6 +58,29 @@ function MongoAdapter() {
 			db.collection(collection).findAndModify(search_query, setquery)
 		})
 	}
+
+	this.generate_chain = function(array, resolve, reject) {
+		function resolver(err, result) {
+			if(err)
+				return reject(err)
+			return resolve(result)
+		}
+
+		var func = resolver
+		for (var i = array.length - 1; i >= 0; --i) {
+			func = (function(callback, options){
+				var call_opt = options.shift()
+				var self = options.shift()
+				options.push(callback)
+				return function(err, result){
+					if(err)
+						return reject(err)
+					call_opt.apply(self, options)
+				}
+			})(func, array[i])
+		}
+		return func
+	}
 }
 
 module.exports = {

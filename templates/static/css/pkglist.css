@@ -1,0 +1,75 @@
+
+.pkglist li {
+	display: block;
+	padding: 4px;
+	clear: both;
+	
+	width: 100%;
+}
+
+.pkglist.pkglist_Complex li {
+	padding: 15px 4px;
+	border-bottom: 1px solid #333;
+}
+
+.pkglist li:hover {
+	background: #efefef;
+}
+.pkglist li a {
+	color: #222;
+	text-decoration: none;
+	width: 100%;
+}
+
+
+.pkglist .repos {
+	font-size: 0.8em;
+	overflow: hidden;
+	white-space: nowrap;
+	color: #666;
+}
+
+.pagination a {
+	display: inline-block;
+
+	padding: 3px;
+	text-decoration: none;
+}
+
+.pkglist .title {
+	font-size: 22px;
+	padding-bottom: 5px;
+}
+.pkglist .title_highlight {
+	font-weight: bold;
+}
+
+.pkglist li a {
+	display: block;
+}
+
+.pkglist li .left, .pkglist li .right {
+	display: inline-block;
+	vertical-align: top;
+}
+
+.pkglist li .left {
+	width: 700px;
+}
+
+.pkglist li .right {
+	width: 160px;
+	text-align: right;
+	margin-right: -160px;
+}
+
+.pkglist .osversion {
+	font-size: 22px;
+	padding-bottom: 5px;
+}
+
+.pkglist .added, .pkglist .tags {
+	color: #777;
+	font-size: 0.8em;
+	margin-top: 15px;
+}

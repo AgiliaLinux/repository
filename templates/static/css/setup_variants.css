@@ -1,0 +1,15 @@
+#create_form input[type="text"], #create_form textarea {
+	width: 600px;
+}
+
+#create_form textarea {
+	height: 100px;
+}
+
+textarea#packages {
+	height: 500px;
+}
+
+#create_form label {
+	vertical-align: top;
+}

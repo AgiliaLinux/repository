@@ -1,0 +1,7 @@
+.item_table .table-cell {
+	padding: 5px;
+}
+
+.uicore_form input[type="text"], .uicore_form input[type="password"], .uicore_form textarea {
+	min-width: 600px;
+}
