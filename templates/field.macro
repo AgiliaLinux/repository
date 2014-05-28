@@ -1,0 +1,46 @@
+
+{% macro field(name, type='text', label='', value='', options=[], placeholder='') %}
+{% set field_class = 'class="input_' + name + '" id="' + name + '" name="' + name + '"' %}
+
+{% if type != 'hidden' %}
+<div class="field_container field_container_{{ name }}">
+	{% if type != 'checkbox' -%}
+		<label for="{{ name }}">{{ label }}</label>
+	{%- endif  %}
+{% endif %}
+
+{% if type == 'checkbox' -%}
+	<input {{ field_class }} value="{% if value == '' -%} 1 {%- else -%}
+		{{ value|int }}
+	{%- endif %}" type="checkbox" {% if value -%} checked {%- endif %} />
+	<label for="{{ name }}">{{ label }}</label>
+{%- elif type == 'textarea' -%}
+	<textarea {{ field_class }} {% if placeholder -%}
+		placeholder="{{placeholder}}"
+	{%- endif %}>{{ value }}</textarea>
+{%- elif type == 'select' -%}
+	<select {{ field_class }}>
+	{% if isArray(options) -%}
+		{% for ovalue in options -%}
+		<option value={{ ovalue }} {% if value == ovalue -%} selected
+			{%- endif %}>{{ ovalue }}</option>;
+		{%- endfor %}
+	{%- else -%}
+		{% for okey, ovalue in options -%}
+		<option value="{{ okey }}" {% if value == okey -%} selected
+			{%- endif %}>{{ ovalue }}</option>
+		{%- endfor %}
+	{%- endif %}
+	</select>
+{%- elif type == 'submit' or type == 'button' -%}
+	<input type="{{ type }}" {{ field_class }} value="{{ value }}" />
+{%- else -%}
+	<input type="{{ type }}" {{ field_class }} {% if placeholder -%}
+		placeholder="{{placeholder}}"
+	{%- endif %} value="{{ value }}" />
+{%- endif %}
+
+{% if type != 'hidden' %}
+</div>
+{% endif %}
+{% endmacro %}

@@ -1,0 +1,14 @@
+
+{% set url_x86 "http://" + site_url + "/pkgindex/x86/" + sidebar.path %}
+{% set url_x86_64 "http://" + site_url + "/pkgindex/x86_64/" + sidebar.path %}
+<h2>{{ sidebar.path }}</h2>
+<ul>
+	<li>
+		<span>x86:</span>
+		<a href="{{ url_x86 }}">{{ url_x86 }}</a><br />
+	</li>
+	<li>
+		<span>x86_64:</span>
+		<a href="{{ url_x86_64 }}">{{ url_x86_64 }}</a><br />
+	</li>
+</ul>

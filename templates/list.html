@@ -1,18 +1,18 @@
 
 {% extends 'index.html' %}
 
-{% block title %}Package list{% endblock %}
+{% block title %}{{ gettext('Package list') }}{% endblock %}
 
 {% block content %}
-	<h1>Last updates in {{ repository }}</h1>
-	<ul class="pkglist pkglist_{{ render_type }}">
-	{% for package_item in packages %}
-		{% include 'package_short.html' %}
+	<h1>{{ gettext('Latest updates in') }} {{ repository }}</h1>
+	<ul class="pkglist pkglist_{{ render_type.name }}">
+	{% for package in packages %}
+		{% include render_type.template %}
 	{% endfor %}
 	</ul>
 	<div class="pagination">
-		Total: {{ count }} packages {% if pages.count > 1 -%}
-			at {{ pages.count|int }} pages
+		{{ format(gettext('Total %s packages'), [count]) }}{% if pages.count > 1 -%}
+			{{ format(gettext('at %s pages'), [pages.count|int]) }}
 		{%- endif %} <br />
 		{% for page in range(1, pages.count) -%}
 			<a href="{{ pages.link }}{{ page }}">{{ page }}</a>

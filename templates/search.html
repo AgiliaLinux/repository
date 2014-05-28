@@ -1,0 +1,24 @@
+
+
+{% include 'field.macro' %}
+
+<div class="minisearch">
+	<form action="/search" method="GET" id="searchbar_form">
+		<input type="search" name="search_query" id="sq" placeholder="{{ gettext('Package search') }}" value="{{ REQUEST.param('sq', '') }}" />
+		<input type="submit" value="{{ gettext('Search') }}" />
+		<input type="button" value="{{ gettext('Advanced search...') }}" onclick="searchbar.advancedSearch();" />
+	</form>
+</div>
+<div class="extendedsearch">
+	<h1>Advanced search</h1>
+	<form class="uicore_form" id="extendedsearch_form" method="GET" action="/search/">
+		{{ field('name', label=gettext('Name')) }}
+		{{ field('version', label=gettext('Version')) }}
+		{{ field('arch', type='select', label=gettext('Architecture'), options=['any', 'x86', 'x86_64']) }}
+		{{ field('build', label=gettext('Build')) }}
+		{{ field('latest', type='checkbox',  label=gettext('Latest only')) }}
+		{{ field('__submit_form_id', type='hidden', value='extendedsearch') }}
+		<input type="submit" value="Search" />
+	</form>
+</div>
+

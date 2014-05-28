@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html itemscope itemtype="http://schema.org/WebPage">
+<html lang="{{ lang }}" dir="{{ lang_dir }}" itemscope itemtype="http://schema.org/WebPage">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<link rel="icon" href="static/favicon.ico" type="image/vnd.microsoft.icon" />
 		<meta content="{{ title }}" about="/" property="dc:title" />
 		<meta name="viewport" content="width=device-width,initial-scale=0.6" />
 		<title>{%block title %}{{ title }}{% endblock %}</title>
-		<link href="static/all.css" type="text/css" rel="stylesheet" />
+		<link href="/static/all.css" type="text/css" rel="stylesheet" />
 		{% block scripts %}{% endblock %}
 		{% block header %}{% endblock %}
 	</head>
@@ -14,6 +14,16 @@
 		<div id="header_wrapper" class="wrapper clearfix">
 			<div id="header" class="area">
 				{% block head %}
+				<div class="block block-global" id="block-logo">
+					<a href="/">
+						<img src="/static/images/logo.svg" alt="" onerror="this.error=null; this.src=\'/static/images/logo.png\';" />
+					</a>
+				</div>
+				<div class="block block-global" id="block-searchbar">
+				{% include 'search.html' %}
+				</div>
+				<div class="block block-global" id="block-login">
+				</div>
 				{% endblock %}
 			</div>
 		</div>

@@ -4,7 +4,10 @@ var mongo = require('../../core/mongo').adapter
 var settings = require('../../settings')
 var when = require('when')
 
-var render_types = ['Simple', 'Complex']
+var render_types = [
+	{ name: 'Simple', template: 'package_link.html'},
+	{ name: 'Complex', template: 'package_short.html'}
+]
 
 var list_route = {
 	render: function(req) {
@@ -18,8 +21,7 @@ var list_route = {
 					packages: packages.items,
 					count: packages.count,
 					pages: {
-						// TODO: link
-						link: '/',
+						link: self.get_url(req),
 						count: packages.count / req.param('limit', 50) + 1,
 						current: req.param('page', 1)
 					}
@@ -28,14 +30,25 @@ var list_route = {
 		})
 	},
 
+	get_url: function(req) {
+		var limit = req.param('limit')
+		var repo = req.param('repository')
+		var url = '/'
+		if (repo)
+			url += 'repo/' + repo + '/'
+		if (limit)
+			url += 'limit/' + limit + '/'
+		return url
+	},
+
 	get_packages: function(req) {
-		var page = req.param('page', 1)
-		var limit = req.param('limit', 50)
+		var page = parseInt(req.param('page', 1))
+		var limit = parseInt(req.param('limit', 50))
 		var offset = (page - 1) * limit
 		var condition = {}
 		var repository = req.param('repository')
 		if (repository)
-			condition['repositories'] = {repository: repository}
+			condition['repositories.repository'] = repository
 		return mongo.connection.then(function(db){
 			return when.promise(function(resolve, reject) {
 				return db.collection('packages', function(err, packages){

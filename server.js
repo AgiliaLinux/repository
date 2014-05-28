@@ -2,12 +2,24 @@
 var port = 3000;
 var nunjucks = require('nunjucks')
 var express = require('express')
+var i18n = require('i18n-abide')
 var routes = require('./routes')
 var template_filters = require('./routes/filters')
 
 var app = express();
+
+// Localization
+app.use(i18n.abide({
+	supported_languages: ['en_US', 'ru',],
+	default_lang: "en_US",
+	translation_directory: "templates/static/i18n",
+}))
+
+// Templates setup
 var env = nunjucks.configure('templates', { autoescape: true, express: app})
 template_filters.init(env)
+
+// Routes setup
 routes.init(app)
 
 app.listen(port);

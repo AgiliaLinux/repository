@@ -1,0 +1,50 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: sda 9\n"
+"POT-Creation-Date: 2014-05-28 07:17+0000\n"
+"PO-Revision-Date: 2014-05-28 10:59+0600\n"
+"Last-Translator:  <fill@with.email>\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: /media/sda9/projects/repository/routes/index.js:47
+#: /media/sda9/projects/repository/routes/index.js:49
+msgid "Not found"
+msgstr "Не найдено"
+
+#: /media/sda9/projects/repository/templates/search.html:7
+msgid "Package search"
+msgstr "Поиск пакетов"
+
+#: /media/sda9/projects/repository/templates/search.html:8
+msgid "Search"
+msgstr "Поиск"
+
+#: /media/sda9/projects/repository/templates/search.html:9
+msgid "Advanced search..."
+msgstr "Расширенный поиск"
+
+#: /media/sda9/projects/repository/templates/search.html:15
+msgid "Name"
+msgstr "Имя"
+
+#: /media/sda9/projects/repository/templates/search.html:16
+msgid "Version"
+msgstr "Версия"
+
+#: /media/sda9/projects/repository/templates/search.html:17
+msgid "Architecture"
+msgstr "Архитектура"
+
+#: /media/sda9/projects/repository/templates/search.html:18
+msgid "Build"
+msgstr "Сборка"
+
+#: /media/sda9/projects/repository/templates/search.html:19
+msgid "Latest only"
+msgstr "Только последние"
