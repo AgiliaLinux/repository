@@ -1,5 +1,8 @@
 
 module.exports = {
+	base: {
+		secret: 'secret'
+	},
 	repository: {
 		repository: 'master',
 		osver: '9.0',

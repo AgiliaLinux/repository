@@ -28,13 +28,13 @@ function MongoAdapter() {
 				db.collection(collection).findOne(query, function(err, item) {
 					if (err)
 						return reject(err)
-					return resolve(item)
+					return resolve(item, db)
 				})
 			})
 		})
 	}
 
-	this.save = function(collection, data, search_query, dry_run) {
+	this.save = function(collection, data, search_query, dry_run, callback) {
 		return this.connection.then(function(db) {
 			var collection = db.collection(collection)
 			var orig = collection.findOne(search_query)
@@ -55,7 +55,7 @@ function MongoAdapter() {
 				return
 
 			var setquery = {'$set': changeset, '$inc': {'_rev': 1}}
-			db.collection(collection).findAndModify(search_query, setquery)
+			collection.findAndModify(search_query, setquery, callback)
 		})
 	}
 

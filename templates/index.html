@@ -7,6 +7,8 @@
 		<meta name="viewport" content="width=device-width,initial-scale=0.6" />
 		<title>{%block title %}{{ title }}{% endblock %}</title>
 		<link href="/static/all.css" type="text/css" rel="stylesheet" />
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<script src="/static/js/temp_bin.js"></script>
 		{% block scripts %}{% endblock %}
 		{% block header %}{% endblock %}
 	</head>
@@ -20,9 +22,10 @@
 					</a>
 				</div>
 				<div class="block block-global" id="block-searchbar">
-				{% include 'search.html' %}
+					{% include 'search.html' %}
 				</div>
 				<div class="block block-global" id="block-login">
+					{% include 'user/login.html' %}
 				</div>
 				{% endblock %}
 			</div>

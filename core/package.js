@@ -277,7 +277,7 @@ var package_proto = {
 	},
 
 	packageFiles: function() {
-		return mongo.connection().then(function(db){
+		return mongo.connection.then(function(db){
 			return when(db.package_files.findOne({md5: this.md5}))
 		})
 	},

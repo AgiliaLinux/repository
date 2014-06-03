@@ -1,0 +1,11 @@
+
+<div id="login_top">
+	{{ gettext('Sign in') }}
+</div>
+<div id="login_menu">
+	<form action="/login" method="post">
+		<input type="text" placeholder="{{ gettext('Username') }}" id="login" name="login" />
+		<input type="password" placeholder="{{ gettext('Password') }}" id="password" name="password" />
+		<input type="submit" value="{{ gettext('Sign in') }}" />
+	</form>
+</div>

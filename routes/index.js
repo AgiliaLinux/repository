@@ -56,8 +56,6 @@ var urls_map = {
 }
 
 function init(app) {
-
-
 	app.use('/static', express.static(path.join(__dirname, '..', 'templates', 'static')))
 	app.param(process_param);
 	app.param('page', /^\d+$/, 1)

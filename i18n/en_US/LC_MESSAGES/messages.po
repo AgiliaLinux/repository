@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: sda 9\n"
-"POT-Creation-Date: 2014-05-28 07:17+0000\n"
+"POT-Creation-Date: 2014-06-03 10:38+0000\n"
 "PO-Revision-Date: 2014-05-28 10:59+0600\n"
 "Last-Translator:  <fill@with.email>\n"
 "Language-Team: English\n"
@@ -11,10 +11,45 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: /media/sda9/projects/repository/core/auth.js:37
+msgid "That email is already taken."
+msgstr ""
+
+#: /media/sda9/projects/repository/core/auth.js:49
+#, fuzzy
+msgid "No user found."
+msgstr "Not found"
+
+#: /media/sda9/projects/repository/core/auth.js:52
+msgid "Wrong password."
+msgstr ""
+
 #: /media/sda9/projects/repository/routes/index.js:47
 #: /media/sda9/projects/repository/routes/index.js:49
 msgid "Not found"
 msgstr "Not found"
+
+#: /media/sda9/projects/repository/templates/404.html:4
+#: /media/sda9/projects/repository/templates/404.html:7
+#, fuzzy
+msgid "Page not found"
+msgstr "Not found"
+
+#: /media/sda9/projects/repository/templates/list.html:4
+msgid "Package list"
+msgstr ""
+
+#: /media/sda9/projects/repository/templates/list.html:7
+msgid "Latest updates in"
+msgstr ""
+
+#: /media/sda9/projects/repository/templates/list.html:14
+msgid "Total %s packages"
+msgstr ""
+
+#: /media/sda9/projects/repository/templates/list.html:15
+msgid "at %s pages"
+msgstr ""
 
 #: /media/sda9/projects/repository/templates/search.html:7
 msgid "Package search"
@@ -46,4 +81,25 @@ msgstr ""
 
 #: /media/sda9/projects/repository/templates/search.html:19
 msgid "Latest only"
+msgstr ""
+
+#: /media/sda9/projects/repository/templates/user/login.html:3
+#: /media/sda9/projects/repository/templates/user/login.html:9
+msgid "Sign in"
+msgstr ""
+
+#: /media/sda9/projects/repository/templates/user/login.html:7
+msgid "Username"
+msgstr ""
+
+#: /media/sda9/projects/repository/templates/user/login.html:8
+msgid "Password"
+msgstr ""
+
+#: /media/sda9/projects/repository/templates/500.html:4
+msgid "Internal server error"
+msgstr ""
+
+#: /media/sda9/projects/repository/templates/500.html:7
+msgid "Server error occured"
 msgstr ""
