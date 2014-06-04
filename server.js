@@ -7,7 +7,7 @@ var cookieParser = require('cookie-parser')
 //var csrf = require('csurf')
 var i18n = require('i18n-abide')
 var routes = require('./routes')
-var auth = require('./core/auth')
+
 var template_filters = require('./routes/filters')
 var app = express();
 
@@ -26,7 +26,6 @@ template_filters.init(env)
 app.use(cookieParser())
 app.use(bodyParser())
 // app.use(csrf())
-auth.init(app)
 
 // Routes setup
 routes.init(app)

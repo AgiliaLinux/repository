@@ -1,0 +1,22 @@
+
+{% extends 'index.html' %}
+
+{% block content %}
+{% if signup_flash -%}
+<div>{{ signup_flash|to_string }}</div>
+{%- endif %}
+{% if error_flash -%}
+<div>{{ error_flash|to_string }}</div>
+{%- endif %}
+<div>
+	<form action="/signup" method="post">
+		<input type="text" placeholder="{{ gettext('Username') }}" id="login" name="login" />
+		<br/>
+		<input type="text" placeholder="{{ gettext('E-Mail') }}" id="email" name="email" />
+		<br/>
+		<input type="password" placeholder="{{ gettext('Password') }}" id="password" name="password" />
+		<br/>
+		<input type="submit" value="{{ gettext('Sign up') }}" />
+	</form>
+</div>
+{% endblock %}

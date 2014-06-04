@@ -27,5 +27,6 @@ done
 PATH=$PATH:${BINARY_DIR} merge-po.sh ${LOCALES_DIR}
 
 # Compile js
+rm -rf ${STATIC_DIR}
 mkdir -p ${STATIC_DIR}
 $COMPILER ${LOCALES_DIR}/ ${STATIC_DIR}

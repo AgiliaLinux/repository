@@ -3,6 +3,7 @@ var express = require('express')
 var path = require('path')
 var _ = require('underscore')
 var context = require('./context')
+var auth = require('./auth')
 var List = require('./classes/List').ListRoute
 
 
@@ -31,10 +32,10 @@ function bind_url(app, url, params) {
 	app.get(url, function(req, res) {
 		Renderer.render(req).then(function(data, status) {
 			res.status(status || 200)
-			res.render(template, _.extend(context, {REQUEST: req}, data))
+			res.render_context(template, data)
 		}).catch(function(error) {
 			res.status(500)
-			res.render('500.html', {error: error})
+			res.render_context('500.html', {error: error})
 		})
 	})
 }
@@ -42,7 +43,7 @@ function bind_url(app, url, params) {
 function default_route(req, res, next){
 	res.status(404)
 	if (req.accepts('html'))
-		res.render('404.html', _.extend(context, {REQUEST: req, url: req.url }))
+		res.render_context('404.html', {url: req.url })
 	else if (req.accepts('json'))
 		res.send({ error: req.gettext('Not found') })
 	else
@@ -60,6 +61,18 @@ function init(app) {
 	app.param(process_param);
 	app.param('page', /^\d+$/, 1)
 	app.param('limit', /^\d+$/)
+
+	// Context
+	app.use(function(req, res, next) {
+		res.render_context = function(template, data) {
+			var context_data = _.extend(context, {REQUEST: req, user: req.user}, data)
+			res.render(template, context_data)
+		}
+		next()
+	})
+
+	// Routes
+	auth.init(app)
 
 	for (var url in urls_map)
 		bind_url(app, url, urls_map[url])

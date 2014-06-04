@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: sda 9\n"
-"POT-Creation-Date: 2014-06-03 10:38+0000\n"
+"POT-Creation-Date: 2014-06-04 05:43+0000\n"
 "PO-Revision-Date: 2014-05-28 10:59+0600\n"
 "Last-Translator:  <fill@with.email>\n"
 "Language-Team: Russian\n"
@@ -12,23 +12,23 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: /media/sda9/projects/repository/core/auth.js:37
+#: /media/sda9/projects/repository/routes/index.js:48
+#: /media/sda9/projects/repository/routes/index.js:50
+msgid "Not found"
+msgstr "Не найдено"
+
+#: /media/sda9/projects/repository/routes/auth.js:37
 msgid "That email is already taken."
 msgstr ""
 
-#: /media/sda9/projects/repository/core/auth.js:49
+#: /media/sda9/projects/repository/routes/auth.js:49
 #, fuzzy
 msgid "No user found."
 msgstr "Не найдено"
 
-#: /media/sda9/projects/repository/core/auth.js:52
+#: /media/sda9/projects/repository/routes/auth.js:55
 msgid "Wrong password."
 msgstr ""
-
-#: /media/sda9/projects/repository/routes/index.js:47
-#: /media/sda9/projects/repository/routes/index.js:49
-msgid "Not found"
-msgstr "Не найдено"
 
 #: /media/sda9/projects/repository/templates/404.html:4
 #: /media/sda9/projects/repository/templates/404.html:7

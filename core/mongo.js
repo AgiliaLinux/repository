@@ -22,13 +22,26 @@ function MongoAdapter() {
 		})
 	})
 
+	this.add = function(collection, data) {
+		return this.connection.then(function(db) {
+			return when.promise(function(resolve, reject) {
+				return db.collection(collection).insert(data, {w: 1},
+					function(err, records) {
+					if (err)
+						return reject(err)
+					return resolve(records)
+				})
+			})
+		})
+	}
+
 	this.load = function(collection, query){
 		return this.connection.then(function(db) {
 			return when.promise(function(resolve, reject) {
-				db.collection(collection).findOne(query, function(err, item) {
+				return db.collection(collection).findOne(query, function(err, item) {
 					if (err)
 						return reject(err)
-					return resolve(item, db)
+					return resolve(item)
 				})
 			})
 		})

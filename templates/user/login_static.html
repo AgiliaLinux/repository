@@ -1,17 +1,23 @@
 
-<div id="login_top">
-	{{ gettext('Sign in') }}
-</div>
-<div id="login_menu">
-	{% if login_flash -%}
-	<div>{{ login_flash }}</div>
-	{%- endif %}
-	{% if error_flash -%}
-	<div>{{ error_flash }}</div>
-	{%- endif %}
+
+{% extends 'index.html' %}
+
+{% block login %}{% endblock %}
+
+{% block content %}
+{% if login_flash -%}
+<div>{{ login_flash }}</div>
+{%- endif %}
+{% if error_flash -%}
+<div>{{ error_flash }}</div>
+{%- endif %}
+<div>
 	<form action="/login" method="post">
 		<input type="text" placeholder="{{ gettext('Username') }}" id="login" name="login" />
+		<br/>
 		<input type="password" placeholder="{{ gettext('Password') }}" id="password" name="password" />
+		<br/>
 		<input type="submit" value="{{ gettext('Sign in') }}" />
 	</form>
 </div>
+{% endblock %}

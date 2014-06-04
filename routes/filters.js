@@ -4,6 +4,9 @@ var _ = require('underscore');
 var filters = {
 	branch_full: function(repository) {
 		return repository.branch + '/' + repository.subgroup
+	},
+	to_string: function(obj) {
+		return JSON.stringify(obj);
 	}
 }
 

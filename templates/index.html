@@ -24,9 +24,16 @@
 				<div class="block block-global" id="block-searchbar">
 					{% include 'search.html' %}
 				</div>
+				{% block login %}
 				<div class="block block-global" id="block-login">
+					{% if user -%}
+					<a href="#">{{ user.username }}</a>
+					<a href="/logout">Logout</a>
+					{%- else -%}
 					{% include 'user/login.html' %}
+					{%- endif %}
 				</div>
+				{% endblock %}
 				{% endblock %}
 			</div>
 		</div>

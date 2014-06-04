@@ -3,8 +3,6 @@ var mongo = require('./mongo').adapter
 var ObjectID = require('mongodb').ObjectID
 var bcrypt = require('bcrypt')
 
-
-
 var user_proto = {
 
 	_create: function(username, email, password, callback) {
@@ -14,20 +12,23 @@ var user_proto = {
 		return mongo.load('users', {'$or': [
 				{username: username},
 				{email: email},
-		]}).then(function(data, db) {
+		]}).then(function(data) {
 			if (data)
 				return callback('User with this name already exists')
 
-			self.username = username
-			self.email = email
-			self.password = bcrypt.hashSync(password, bcrypt.genSaltSync(8))
-			self.join_date = new Date()
-			self.enabled = 1
-			self.permissions = []
-			self.groups = []
+			var data = {
+				username: username,
+				email: email,
+				password: bcrypt.hashSync(password, bcrypt.genSaltSync(8)),
+				join_date: new Date(),
+				enabled: true,
+				permissions: [],
+				groups: [],
+			}
 
-			return db.collection('users').insert(self.getData(), {w: 1},
-				function(err, record) { return callback(err, self) })
+			return mongo.add('users', data).then(function(records) {
+					self._load(username, callback)
+				}).catch(callback)
 		}).catch(callback)
 	},
 
@@ -36,7 +37,7 @@ var user_proto = {
 		return mongo.load('users', {username: username}).then(function(data, db) {
 			self.username = data.username
 			self.email = data.email
-			self._id = ObjectId(data._id)
+			self._id = ObjectID(data._id)
 			self.enabled = data.enabled
 			self.permissions = data.permissions
 			self.groups = data.groups
@@ -58,6 +59,12 @@ var user_proto = {
 		return mongo.connection.then(function(db) {
 			db.collection('users').remove(searchquery, callback)
 		})
+	},
+
+	validate: function(password, callback) {
+		return mongo.load('users', {_id: this._id}).then(function(data, db) {
+			return bcrypt.compare(password, data.password, callback)
+		}).catch(callback)
 	},
 
 	getData: function() {
@@ -159,20 +166,19 @@ User.create = function(username, email, password, callback) {
 	return user._create(username, email, password, callback);
 }
 
-User.get = function(username, callback) {
-	var options = {username: name}
+User.get = function(username, enabled, callback) {
+	var options = {username: username}
 	if (enabled)
 		options.enabled = true
-	return mongo.load('users', options).then(function(user) {
-		if (!user)
-			return callback('User not found')
-		return user._load(username, callback)
-	}).catch(callback)
+	var user = new User()
+	return user._load(username, callback)
 }
 
 User.delete = function(username, callback) {
-	return User.get(username, function(err, user){
+	return User.get(username, false, function(err, user){
 		return user.delete(callback)
 	})
 }
 
+
+module.exports = User
