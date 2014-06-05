@@ -1,0 +1,124 @@
+
+{% extends 'index.html' %}
+{% include 'macro/tab.macro' %}
+
+{% block content %}
+{% if !package %}
+	{{ gettext('No package specified') }}
+{% else %}
+<h1>{{ package.name }}</h1>
+<div class="infoblock description">
+	<p>{% if package.description -%}
+		{{ package.description }}
+		{%- else -%}
+		{{ package.short_description }}
+		{%- endif %}<p>
+</div>
+<div class="infoblock meta_block">
+{% for title, data in package.info %}
+	<dl class="meta_row">
+		<dt class="meta_title">{{ title }}</dt>
+		<dd class="meta_data">{{ data }}</dd>
+	</dl>
+{% endfor %}
+</div>
+<div class="infoblock repository_info">
+	<h3>Repositories</h3>
+	<ul>
+		{% for path in package.repositories %}
+		<li>
+			<a href="/browser/{{ path.full }}">{{ path.full }}</a>
+			{% if path.latest %}<span>(latest)</span>{% endif %}
+		</li>
+		{% endfor %}
+	</ul>
+</div>
+<div class="infoblock download_links">
+	<h3>Download</h3>
+	<div class="download">
+		<span>Package:<span>
+		<a href="/{{ package.location }}/{{ package.filename }}">{{ package.filename }}</a>
+	</div>
+	{% if package.abuild %}
+	<div class="download">
+		<span>Build tree:</span>
+		<a href="/fileview/{{ package.md5 }}/{{ package.abuild|urlencode }}">{{ package.abuild }}</a>
+	</div>
+	{% endif %}
+</div>
+<div class="tabs">
+	{% set headers = ['Dependencies', 'Files', 'Other versions'] %}
+	{% if user %}{{ headers.push('Edit locations') }}{% endif %}
+
+	{{ tabs_head(headers) }}
+	<div class="tabs_content">
+		<div class="tab_content_item active" id="tab_content_item_1" data-tab-id="1">
+			<ul>
+			{% for dep in package.dependencies %}
+				<li>
+					{% set cond = dep.condition|dep_string %}
+					{# TODO: fix link to search within packages that matches version criteria only. #}
+					<a href="/search/{{ dep.name|urlencode }}">{{ dep.name }}</a>
+					{% if cond %}<span>{{ cond }} {{ dep.version }}</span>{% endif %}
+				</li>
+			{% endfor %}
+			</ul>
+		</div>
+		<div class="tab_content_item" id="tab_content_item_2" data-tab-id="2">
+			<div id="filelist">
+				<ol>
+				{% for file in package.files %}
+					<li>
+						<a href="/fileview/{{ package.md5 }}/{{ file|urlencode }}">{{ file }}</a>
+					</li>
+				{%  endfor %}
+				</ol>
+			</div>
+		</div>
+		<div class="tab_content_item" id="tab_content_item_3" data-tab-id="3">
+			<div id="otherversions">
+				<ol>
+				{% for alt in package.altversions %}
+					{% if alt.md5 != package.md5 %}
+					<li>
+						<a href="/pkgview/{{ alt.md5 }}">{{ alt.name }}</a>
+					</li>
+					{% endif %}
+				{% endfor %}
+				</ol>
+			</div>
+		</div>
+		{% if user %}
+		<div class="tab_content_item" id="tab_content_item_4" data-tab-id="4">
+			{% if package.repositories %}
+			<table class="uicore-table">
+				<thead></thead>
+				<tbody>
+					{% for path in package.repositories %}
+					{% set args = [path.repository, path.osversion, path.branch, path.subgroup] %}
+					{% set args_str = args|string %}
+					<tr>
+						<td>{{ args|join('/') }}</td>
+						<td>
+							<input type="button" value="Copy" onclick="pkgCopy({{ args_str }});" />
+						</td>
+						<td>
+							<input type="button" value="Move" onclick="pkgMove({{ args_str }});" />
+						</td>
+						<td>
+							<input type="button" value="Delete" onclick="pkgDelete({{ args_str }});" />
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+			{% else %}
+			<input type="button" value="New location" onclick="pkgCopy();" />
+			{% endif %}
+		</div>
+		{% endif %}
+	</div>
+</div>
+
+{% endif %}
+{% endblock %}

@@ -7,6 +7,16 @@ var filters = {
 	},
 	to_string: function(obj) {
 		return JSON.stringify(obj);
+	},
+	dep_string: function(dep) {
+		var deps = {
+			atleast: '>=',
+			equal: '=',
+			any: ''
+		}
+		if (dep in deps)
+			return deps[dep]
+		return _.values(deps).indexOf(dep) < 0 ? '' : dep
 	}
 }
 

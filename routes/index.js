@@ -5,6 +5,7 @@ var _ = require('underscore')
 var context = require('./context')
 var auth = require('./auth')
 var List = require('./classes/List').ListRoute
+var PackageRoute = require('./classes/Package').PackageRoute
 
 
 function process_param(name, fn, dflt){
@@ -53,7 +54,8 @@ function default_route(req, res, next){
 
 var urls_map = {
 	'(?:/repo/:repository)?(?:/limit/:limit)?/:page?':
-		['list.html', List, {type: 1}],
+		['list.html', List, {title: 'Package list', type: 1}],
+	'/pkgview/:md5': ['package_details.html', PackageRoute],
 }
 
 function init(app) {

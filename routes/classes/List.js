@@ -16,6 +16,7 @@ var list_route = {
 		return when.promise(function(resolve, reject) {
 			return self.get_packages(req).then(function (packages) {
 				return resolve({
+					title: self.options.title,
 					repository: repo,
 					render_type: render_types[self.options.type],
 					packages: packages.items,

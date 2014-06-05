@@ -254,7 +254,7 @@ var package_proto = {
 		var arch = this.queryArchSet()
 		if (arch)
 			query.arch = arch
-		return mongo.connection.then(function(db){
+		return mongo.connection.then(function(db) {
 			var packages = db.collection('packages').find(query)
 			return when(packages.map(function(item) { return new Package(item) }))
 		})
@@ -303,7 +303,7 @@ module.exports = {
 	return when.promise(function(resolve, reject) {
 		if (packages[md5])
 			return resolve(packages[md5])
-		mongo.load('packages', {md5: md5}).then(function(data) {
+		return mongo.load('packages', {md5: md5}).then(function(data) {
 				resolve(packages[md5] = new Package(data))
 			})
 		})
