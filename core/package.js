@@ -59,7 +59,7 @@ function package_data(pkgdata, filename, location, size, length, md5, files) {
 		dependencies: promote_data(data.dependencies, 'dep'),
 		description: data.description,
 		filename: filename,
-		installed_size: size,
+		installed_size: data.size,
 		location: location,
 		maintainer: data.mantainer,
 		md5: md5,
@@ -72,6 +72,23 @@ function package_data(pkgdata, filename, location, size, length, md5, files) {
 		version: data.version
 	}
 }
+
+var field_names = {
+	version: "Version",
+	build: "Build",
+	arch: "Architecture",
+	add_date: "Added at",
+	mantainer: "Built by",
+	tags: "Tags",
+	md5: "md5 hash",
+	compressed_size: "Package size",
+	installed_size: "Uncompressed",
+	provides: "Provide",
+	conflicts: "Conflict with",
+	config_files: "Configuration files"
+}
+
+
 
 var package_file_proto = {
 
@@ -202,7 +219,11 @@ var package_proto = {
 			var key = storable_keys[i]
 			ret[key] = this[key]
 		}
-		return ret;
+		return ret
+	},
+
+	annotation: function() {
+		return field_names
 	},
 
 	recheckLatest: function(packages, path, save_inplace) {
@@ -227,6 +248,9 @@ var package_proto = {
 	},
 
 	fromPath: function(path) {
+		if (!path)
+			return {}
+
 		var components = path.split('/')
 		return {
 			repository: components[0],
@@ -248,20 +272,41 @@ var package_proto = {
 		})
 	},
 
-	altVersions: function(path) {
-		var params = self.fromPath(path)
-		var query = {name: this.name, repositories: params}
-		var arch = this.queryArchSet()
-		if (arch)
-			query.arch = arch
-		return mongo.connection.then(function(db) {
-			var packages = db.collection('packages').find(query)
-			return when(packages.map(function(item) { return new Package(item) }))
+	altVersions: function(path, arch) {
+		var query = {name: this.name}
+
+		var params = this.fromPath(path)
+		for (var k in params)
+			query['repositories.' + k] = params[k]
+
+		var query_arch = this.queryArchSet(arch)
+		if (query_arch)
+			query.arch = query_arch
+
+		var self = this
+		return when.promise(function(resolve, reject){
+			return mongo.connection.then(function(db){
+				var collection = db.collection('packages')
+				return collection.find(query, function(err, cursor) {
+					if (err)
+						return reject(err)
+					return cursor.toArray(function(err, packages) {
+						if (err)
+							return reject(err)
+						return resolve(_.map(_.filter(packages, function(item){
+							return item.md5 != self.md5
+						}), function(data){
+							return new Package(data)
+						}))
+					})
+				})
+			}).catch(reject)
 		})
 	},
 
-	queryArchSet: function() {
-		if (/^..*86$/.test(this.arch))
+	queryArchSet: function(arch) {
+		arch = arch || this.arch
+		if (/^..*86$/.test(arch))
 			return {'$in': ['x86', 'i386', 'i486', 'i586', 'i686', 'noarch', 'fw']}
 		else if (arch == 'x86_64')
 			return {'$in': ['x86_64', 'noarch', 'fw']}
@@ -277,8 +322,16 @@ var package_proto = {
 	},
 
 	packageFiles: function() {
-		return mongo.connection.then(function(db){
-			return when(db.package_files.findOne({md5: this.md5}))
+		var self = this
+		return when.promise(function(resolve, reject){
+			return mongo.connection.then(function(db){
+				var collection = db.collection('package_files')
+				return collection.findOne({md5: self.md5}, function(err, files) {
+					if (err)
+						return reject(err)
+					return resolve(files)
+				})
+			}).catch(reject)
 		})
 	},
 }

@@ -1,9 +1,8 @@
 
 {% extends 'index.html' %}
-{% include 'macro/tab.macro' %}
 
 {% block content %}
-{% if !package %}
+{% if not package %}
 	{{ gettext('No package specified') }}
 {% else %}
 <h1>{{ package.name }}</h1>
@@ -17,7 +16,7 @@
 <div class="infoblock meta_block">
 {% for title, data in package.info %}
 	<dl class="meta_row">
-		<dt class="meta_title">{{ title }}</dt>
+		<dt class="meta_title">{{ gettext(title) }}</dt>
 		<dd class="meta_data">{{ data }}</dd>
 	</dl>
 {% endfor %}
@@ -25,10 +24,11 @@
 <div class="infoblock repository_info">
 	<h3>Repositories</h3>
 	<ul>
-		{% for path in package.repositories %}
+		{% for repo in package.repositories %}
 		<li>
-			<a href="/browser/{{ path.full }}">{{ path.full }}</a>
-			{% if path.latest %}<span>(latest)</span>{% endif %}
+			{% set path = [repo.repository, repo.osversion, repo.branch, repo.subgroup] %}
+			<a href="/browser/{{ path|join('/') }}">{{ path|join('/') }}</a>
+			{% if repo.latest %}<span>(latest)</span>{% endif %}
 		</li>
 		{% endfor %}
 	</ul>
@@ -37,7 +37,7 @@
 	<h3>Download</h3>
 	<div class="download">
 		<span>Package:<span>
-		<a href="/{{ package.location }}/{{ package.filename }}">{{ package.filename }}</a>
+		<a href="/{{ package.location }}/{{ package.filename }}">{{ package.filename|basename }}</a>
 	</div>
 	{% if package.abuild %}
 	<div class="download">
@@ -47,10 +47,24 @@
 	{% endif %}
 </div>
 <div class="tabs">
-	{% set headers = ['Dependencies', 'Files', 'Other versions'] %}
-	{% if user %}{{ headers.push('Edit locations') }}{% endif %}
-
-	{{ tabs_head(headers) }}
+	<div class="tabs_nav">
+		<div class="tab_nav_item active" id="tab_nav_item_1" data-tab-id="1">
+			<span>{{ gettext('Dependencies') }}</span>
+		</div>
+		<div class="tab_nav_item" id="tab_nav_item_2" data-tab-id="2">
+			<span>{{ gettext('Files') }}</span>
+		</div>
+		{% if package.altversions.length %}
+		<div class="tab_nav_item" id="tab_nav_item_3" data-tab-id="3">
+			<span>{{ gettext('Other versions') }}</span>
+		</div>
+		{% endif %}
+		{% if user %}
+		<div class="tab_nav_item" id="tab_nav_item_4" data-tab-id="4">
+			<span>{{ gettext('Locations') }}</span>
+		</div>
+		{% endif %}
+	</div>
 	<div class="tabs_content">
 		<div class="tab_content_item active" id="tab_content_item_1" data-tab-id="1">
 			<ul>
@@ -75,19 +89,26 @@
 				</ol>
 			</div>
 		</div>
+		{% if package.altversions %}
 		<div class="tab_content_item" id="tab_content_item_3" data-tab-id="3">
 			<div id="otherversions">
 				<ol>
 				{% for alt in package.altversions %}
 					{% if alt.md5 != package.md5 %}
 					<li>
-						<a href="/pkgview/{{ alt.md5 }}">{{ alt.name }}</a>
+						<a href="/pkgview/{{ alt.md5 }}">{{ alt.name }} {{ alt.version }}-{{ alt.build }}</a>
+						<span>at</span>
+						{% for repo in alt.repositories %}
+							{% set path = [repo.repository, repo.osversion, repo.branch, repo.subgroup] %}
+						<a href="/browser/{{ path|join('/') }}">{{ repo.repository }}/{{ repo.branch }}</a>
+						{% endfor %}
 					</li>
 					{% endif %}
 				{% endfor %}
 				</ol>
 			</div>
 		</div>
+		{% endif %}
 		{% if user %}
 		<div class="tab_content_item" id="tab_content_item_4" data-tab-id="4">
 			{% if package.repositories %}
@@ -119,6 +140,5 @@
 		{% endif %}
 	</div>
 </div>
-
 {% endif %}
 {% endblock %}

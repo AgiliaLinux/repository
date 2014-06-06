@@ -16,7 +16,7 @@ function add_to_db(pkg, root_path, repo, is_latest) {
 				var files = db.collection('package_files')
 
 				if (is_latest)
-					repo.latest = null
+					repo.latest = true
 
 				p.repositories = [repo]
 				p.add_date = new Date()

@@ -1,5 +1,6 @@
 
-var _ = require('underscore');
+var _ = require('underscore')
+var path = require('path')
 
 var filters = {
 	branch_full: function(repository) {
@@ -17,6 +18,9 @@ var filters = {
 		if (dep in deps)
 			return deps[dep]
 		return _.values(deps).indexOf(dep) < 0 ? '' : dep
+	},
+	basename: function(p) {
+		return path.basename(p)
 	}
 }
 

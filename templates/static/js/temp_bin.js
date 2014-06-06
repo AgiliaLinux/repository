@@ -21,3 +21,20 @@ var searchbar = {
 		createPopup($(".extendedsearch").html());
 	}
 }
+
+function removePopup() {
+	$('.popup, .popup_shadow').remove();
+}
+function createPopup(code) {
+	$('body').append('<div class="popup" id="popup">' + code + '</div><div class="popup_shadow" id="popup_shadow" onclick="removePopup();"></div>');
+}
+
+$(document).ready(function() {
+	$(".tab_nav_item").click(function() {
+		var tab_id = $(this).attr('data-tab-id');
+		$('.tab_content_item').removeClass('active');
+		$('.tab_nav_item').removeClass('active');
+		$('#tab_content_item_' + tab_id).addClass('active');
+		$('#tab_nav_item_' + tab_id).addClass('active');
+	});
+});
