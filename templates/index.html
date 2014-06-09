@@ -52,6 +52,12 @@
 		<div id="footer_wrapper" class="wrapper clearfix">
 			<div id="footer" class="area">
 				{% block footer %}
+				{% if footer.error %}
+					{# php, lol #}
+					{{ footer.err }}
+				{% else %}
+					{{ gettext('This server contains ') + footer.packages_count + gettext(' packages, total: ') + footer.packages_size|humanize_size }}
+				{% endif %}
 				{% endblock %}
 			</div>
 		</div>

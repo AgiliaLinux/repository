@@ -4,6 +4,7 @@ var path = require('path')
 var _ = require('underscore')
 var context = require('./context')
 var auth = require('./auth')
+var misc_routes = require('./misc')
 var List = require('./classes/List').ListRoute
 var PackageRoute = require('./classes/Package').PackageRoute
 
@@ -66,8 +67,10 @@ function init(app) {
 
 	// Context
 	app.use(function(req, res, next) {
+		res.context = {}
 		res.render_context = function(template, data) {
-			var context_data = _.extend(context, {REQUEST: req, user: req.user}, data)
+			var context_data = _.extend(context, res.context,
+				{REQUEST: req, user: req.user}, data)
 			res.render(template, context_data)
 		}
 		next()
@@ -75,6 +78,7 @@ function init(app) {
 
 	// Routes
 	auth.init(app)
+	misc_routes.init(app)
 
 	for (var url in urls_map)
 		bind_url(app, url, urls_map[url])
