@@ -4,7 +4,7 @@
 {% block title %}{{ gettext('Package list') }}{% endblock %}
 
 {% block content %}
-	<h1>{{ gettext('Latest updates in') }} {{ repository }}</h1>
+	<h1>{{ gettext('Latest updates in') }} {{ repository.repository }}</h1>
 	<ul class="pkglist pkglist_{{ render_type.name }}">
 	{% for package in packages %}
 		{% include render_type.template %}

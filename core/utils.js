@@ -64,5 +64,5 @@ function walk(dir, options, done) {
 
 module.exports = {
 	walk: walk,
-	run: run_command
+	run: run_command,
 }

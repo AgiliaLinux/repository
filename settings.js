@@ -1,7 +1,12 @@
 
 module.exports = {
 	base: {
-		secret: 'secret'
+		secret: 'secret',
+	},
+	permissions: {
+		user: 'admin',
+		everyone: '@everyone',
+		actions: ['read', 'write', 'admin']
 	},
 	paths: {
 		storage: ''

@@ -1,6 +1,6 @@
 <li>
 	<!--- TODO: div cannot be in a -->
-	<a class="pkglink" href="/pkgview/{{ package.md5 }}">
+	<a class="pkglink" href="{% url 'pkgview', md5=package.md5 %}">
 		<div class="left">
 			<div class="title">
 				<span class="title_highlight">{{ package.name }}</span>

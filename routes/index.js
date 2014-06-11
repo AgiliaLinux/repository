@@ -2,12 +2,11 @@
 var express = require('express')
 var path = require('path')
 var _ = require('underscore')
+var reversable = require('urlreverser').url
 var context = require('./context')
 var auth = require('./auth')
 var misc_routes = require('./misc')
-var List = require('./classes/List').ListRoute
-var PackageRoute = require('./classes/Package').PackageRoute
-
+var routes = require('./classes')
 
 function process_param(name, fn, dflt){
 	if (fn instanceof RegExp) {
@@ -29,6 +28,8 @@ function bind_url(app, url, params) {
 	var template = params[0],
 		renderer_class = params[1],
 		render_opts = params[2]
+	if (typeof renderer_class != 'function')
+		return
 
 	var Renderer = new renderer_class(render_opts || {})
 	app.get(url, function(req, res) {
@@ -53,11 +54,20 @@ function default_route(req, res, next){
 }
 
 
-var urls_map = {
-	'(?:/repo/:repository)?(?:/limit/:limit)?/:page?':
-		['list.html', List, {title: 'Package list', type: 1}],
-	'/pkgview/:md5': ['package_details.html', PackageRoute],
-}
+var urls_list = [
+	[reversable('(?:/repo/:repository)?(?:/limit/:limit)?/:page?', 'index'),
+		'list.html', routes.List, {title: 'Package list', type: 1}],
+	[reversable('/pkgview/:md5', 'pkgview'),
+		'package_details.html', routes.Package],
+	[reversable('/browser' + '(?:/repo/:repository)?' + '(?:/os/:osversion)?' +
+				'(?:/branch/:branch)?' + '(?:/subgroup/:subgroup)?' +
+				'(?:/limit/:limit)?', 'browser'),
+		'browser.html', routes.List, {title: 'Package list', type: 1}],
+	[reversable('/search/?q=:q(?:&v=:v)?', 'search'),
+		'search.html', routes.Search],
+	[reversable('/fileview/:md5/:path', 'fileview'),
+		'file.html', routes.File],
+]
 
 function init(app) {
 	app.use('/static', express.static(path.join(__dirname, '..', 'templates', 'static')))
@@ -80,8 +90,10 @@ function init(app) {
 	auth.init(app)
 	misc_routes.init(app)
 
-	for (var url in urls_map)
-		bind_url(app, url, urls_map[url])
+	for (var i = 0; i < urls_list.length; ++i) {
+		var url = urls_list[i].shift()
+		bind_url(app, url, urls_list[i])
+	}
 
 	app.use(default_route)
 }

@@ -47,9 +47,18 @@ function MongoAdapter() {
 		})
 	}
 
-	this.save = function(collection, data, search_query, dry_run, callback) {
+	this.save_nodiff = function(coll_name, search_query, set_query, callback) {
 		return this.connection.then(function(db) {
-			var collection = db.collection(collection)
+			return db.collection(coll_name, function(err, collection) {
+				if (err) return callback(err)
+				collection.findAndModify(search_query, setquery, callback)
+			})
+		})
+	}
+
+	this.save = function(coll_name, data, search_query, dry_run, callback) {
+		return this.connection.then(function(db) {
+			var collection = db.collection(coll_name)
 			var orig = collection.findOne(search_query)
 			if (_.isEqual(orig, data))
 				return
@@ -68,7 +77,7 @@ function MongoAdapter() {
 				return
 
 			var setquery = {'$set': changeset, '$inc': {'_rev': 1}}
-			collection.findAndModify(search_query, setquery, callback)
+			return this.save_nodiff(coll_name, search_query, set_query, callback)
 		})
 	}
 

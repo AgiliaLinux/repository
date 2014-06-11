@@ -27,7 +27,7 @@
 		{% for repo in package.repositories %}
 		<li>
 			{% set path = [repo.repository, repo.osversion, repo.branch, repo.subgroup] %}
-			<a href="/browser/{{ path|join('/') }}">{{ path|join('/') }}</a>
+			<a href="{% url 'browser', repository=repo.repository, osversion=repo.osversion, branch=repo.branch, subgroup=repo.subgroup %}">{{ path|join('/') }}</a>
 			{% if repo.latest %}<span>(latest)</span>{% endif %}
 		</li>
 		{% endfor %}
@@ -42,7 +42,7 @@
 	{% if package.abuild %}
 	<div class="download">
 		<span>Build tree:</span>
-		<a href="/fileview/{{ package.md5 }}/{{ package.abuild|urlencode }}">{{ package.abuild }}</a>
+		<a href="{% url 'fileview', md5=package.md5, path=package.abuild.path|urlencode %}">{{ package.abuild.filename }}</a>
 	</div>
 	{% endif %}
 </div>
@@ -71,8 +71,7 @@
 			{% for dep in package.dependencies %}
 				<li>
 					{% set cond = dep.condition|dep_string %}
-					{# TODO: fix link to search within packages that matches version criteria only. #}
-					<a href="/search/{{ dep.name|urlencode }}">{{ dep.name }}</a>
+					<a href="{% url 'search', q=dep.name|urlencode, v=dep.version|urlencode %}">{{ dep.name }}</a>
 					{% if cond %}<span>{{ cond }} {{ dep.version }}</span>{% endif %}
 				</li>
 			{% endfor %}
@@ -83,7 +82,7 @@
 				<ol>
 				{% for file in package.files %}
 					<li>
-						<a href="/fileview/{{ package.md5 }}/{{ file|urlencode }}">{{ file }}</a>
+						<a href="{% url 'fileview', md5=package.md5, path=file|urlencode %}">{{ file }}</a>
 					</li>
 				{%  endfor %}
 				</ol>
@@ -96,11 +95,10 @@
 				{% for alt in package.altversions %}
 					{% if alt.md5 != package.md5 %}
 					<li>
-						<a href="/pkgview/{{ alt.md5 }}">{{ alt.name }} {{ alt.version }}-{{ alt.build }}</a>
+						<a href="{% url 'pkgview', md5=alt.md5 %}">{{ alt.name }} {{ alt.version }}-{{ alt.build }}</a>
 						<span>at</span>
 						{% for repo in alt.repositories %}
-							{% set path = [repo.repository, repo.osversion, repo.branch, repo.subgroup] %}
-						<a href="/browser/{{ path|join('/') }}">{{ repo.repository }}/{{ repo.branch }}</a>
+						<a href="{% url 'browser', repo=repo.repository, os=repo.osversion, branch=repo.branch, subgroup=repo.subgroup %}">{{ repo.repository }}/{{ repo.branch }}</a>
 						{% endfor %}
 					</li>
 					{% endif %}

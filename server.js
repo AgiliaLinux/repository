@@ -6,6 +6,7 @@ var bodyParser = require('body-parser')
 var cookieParser = require('cookie-parser')
 //var csrf = require('csurf')
 var i18n = require('i18n-abide')
+var reverser = require('urlreverser').nunjucks
 var routes = require('./routes')
 
 var template_filters = require('./routes/filters')
@@ -21,6 +22,7 @@ app.use(i18n.abide({
 // Templates setup
 var env = nunjucks.configure('templates', { autoescape: true, express: app})
 template_filters.init(env)
+reverser(env)
 
 // Core
 app.use(cookieParser())

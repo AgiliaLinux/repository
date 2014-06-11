@@ -24,6 +24,7 @@
     "connect-memcached": "0.1.x",
     "connect-flash": "0.1.x",
     "when": "3.x.x",
-    "xml2js": "0.4.x"
+    "xml2js": "0.4.x",
+    "urlreverser": "0.0.x"
   }
 }
