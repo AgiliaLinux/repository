@@ -56,13 +56,15 @@ function default_route(req, res, next){
 
 var urls_list = [
 	[reversable('(?:/repo/:repository)?(?:/limit/:limit)?/:page?', 'index'),
-		'list.html', routes.List, {title: 'Package list', type: 1}],
+		'list.html', routes.List, {title: 'Package list', render_type: 1}],
 	[reversable('/pkgview/:md5', 'pkgview'),
 		'package_details.html', routes.Package],
-	[reversable('/browser' + '(?:/repo/:repository)?' + '(?:/os/:osversion)?' +
+	[reversable('/browser' + '(?:/repo/:repository)?' + '(?:/os/:osver)?' +
 				'(?:/branch/:branch)?' + '(?:/subgroup/:subgroup)?' +
 				'(?:/limit/:limit)?', 'browser'),
-		'browser.html', routes.List, {title: 'Package list', type: 1}],
+		'browser.html', routes.List, {
+			title: 'Package list', render_type: 1, show_repo: true
+	}],
 	[reversable('/search/?q=:q(?:&v=:v)?', 'search'),
 		'search.html', routes.Search],
 	[reversable('/fileview/:md5/:path', 'fileview'),

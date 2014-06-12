@@ -1,8 +1,5 @@
 
-
-{{ repository|to_string }}
 {#
-<!--
 {% set url_x86 "http://" + site_url + "/pkgindex/x86/" + sidebar.path %}
 {% set url_x86_64 "http://" + site_url + "/pkgindex/x86_64/" + sidebar.path %}
 <h2>{{ sidebar.path }}</h2>
@@ -16,12 +13,12 @@
 		<a href="{{ url_x86_64 }}">{{ url_x86_64 }}</a><br />
 	</li>
 </ul>
- -->
+#}
 
 <div>
-	<label for="browser_repositories">Repositories:</label
+	<label for="browser_repositories">Repositories:</label>
 	<ul id="browser_repositories">
-	{% foreach repo in repositories %}
+	{% for repo in repository.repositories %}
 		<li><a href="{% url 'browser', repository=repo %}">{{ repo }}</a></li>
 	{% endfor %}
 	</ul>
@@ -29,25 +26,24 @@
 <div>
 	<label for="browser_osversions">OS versions:</label>
 	<ul id="browser_osversions">
-	{% foreach osver in repository.osversions %}
-		<li><a href="{% url 'browser', repository=repository.branches, osversion=osver %}">{{ osver }}</a></li>
+	{% for osver in repository.osversions %}
+		<li><a href="{% url 'browser', repository=repository.repository, osversion=osver %}">{{ osver }}</a></li>
 	{% endfor %}
 	</ul>
 </div>
 <div>
 	<label for="browser_branches">Branches:</label>
 	<ul id="browser_branches">
-	{% foreach branch in osversions.branches %}
-		<li><a href="{% url 'browser', repository=repository.branches, osversion=osver, branch=branch %}">{{ branch }}</a></li>
+	{% for branch in repository.branches %}
+		<li><a href="{% url 'browser', repository=repository.repository, osversion=repository.osver, branch=branch %}">{{ branch }}</a></li>
 	{% endfor %}
 	</ul>
 </div>
 <div>
 	<label for="browser_subgroups">Subgroups:</label>
 	<ul id="browser_subgroups">
-	{% foreach branch in osversions.branches %}
-		<li><a href="{% url 'browser', repository=repository.branches, osversion=osver, branch=branch %}">{{ branch }}</a></li>
+	{% for subgroup in repository.subgroups %}
+		<li><a href="{% url 'browser', repository=repository.repository, osver=repository.osver, branch=repository.branch, subgroup=subgroup %}">{{ subgroup }}</a></li>
 	{% endfor %}
 	</ul>
 </div>
- #}

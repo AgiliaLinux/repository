@@ -25,13 +25,13 @@ function add_to_db(pkg, root_path, repo, is_latest) {
 				var concern = {w: 1}
 				var md5_key = {md5: p.md5}
 				var mongo_chain = [
-					[packages.remove, packages, md5_key, concern],
-					[packages.insert, packages, p, concern],
-					[files.remove, files, md5_key, concern],
-					[files.insert, files, {md5: p.md5, files: pkg.files}, concern]
+					['remove', packages, md5_key, concern],
+					['insert', packages, p, concern],
+					['remove', files, md5_key, concern],
+					['insert', files, {md5: p.md5, files: pkg.files}, concern]
 				]
 
-				mongo.generate_chain(mongo_chain, resolve, reject)()
+				utils.chain(mongo_chain, resolve, reject)()
 			})
 		})
 	})

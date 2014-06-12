@@ -47,7 +47,7 @@ var user_proto = {
 
 	save: function(callback) {
 		var searchquery = {_id: this._id}
-		var data = this.getData()
+		var data = this.data
 		var self = this
 		return mongo.save('users', data, searchquery, false, function(err, r){
 			callback(err, self)
@@ -67,7 +67,7 @@ var user_proto = {
 		}).catch(callback)
 	},
 
-	getData: function() {
+	get data() {
 		return {
 			username: this.username,
 			email: this.email,

@@ -56,6 +56,17 @@ function MongoAdapter() {
 		})
 	}
 
+	this.count = function(coll_name, query) {
+		return this.connection.then(function(db) {
+			return when.promise(function(resolve, reject) {
+				return db.collection(coll_name).count(query, function(err, c) {
+					if (err) return reject(err)
+					return resolve(c)
+				})
+			})
+		})
+	}
+
 	this.save = function(coll_name, data, search_query, dry_run, callback) {
 		return this.connection.then(function(db) {
 			var collection = db.collection(coll_name)
@@ -81,28 +92,7 @@ function MongoAdapter() {
 		})
 	}
 
-	this.generate_chain = function(array, resolve, reject) {
-		function resolver(err, result) {
-			if(err)
-				return reject(err)
-			return resolve(result)
-		}
 
-		var func = resolver
-		for (var i = array.length - 1; i >= 0; --i) {
-			func = (function(callback, options){
-				var call_opt = options.shift()
-				var self = options.shift()
-				options.push(callback)
-				return function(err, result){
-					if(err)
-						return reject(err)
-					call_opt.apply(self, options)
-				}
-			})(func, array[i])
-		}
-		return func
-	}
 }
 
 module.exports = {

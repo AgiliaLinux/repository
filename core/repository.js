@@ -19,6 +19,12 @@ function save_package(pkg, params, cursor, next, reject) {
 	})
 }
 
+var package_fields = {
+	'osversions': 'osver',
+	'branches': 'branch',
+	'subgroups': 'subgroup'
+}
+
 
 var repository_proto = {
 
@@ -27,10 +33,13 @@ var repository_proto = {
 		var self = this
 		return when.promise(function(resolve, reject) {
 			return mongo.connection.then(function(db) {
-				return db.collection('repositories').findOne({name: self.name},
+				var name = self.name
+				return db.collection('repositories').findOne({name: name},
 					function(err, repo) {
-					if(err)
+					if (err)
 						return reject(err)
+					if (!repo)
+						return reject('Repository ' + name + ' does not exists')
 					self.settings = repo
 					return resolve(self)
 				})
@@ -58,7 +67,7 @@ var repository_proto = {
 
 	/* Returns repository owner */
 	owner: function() {
-		return this._settings.owner || settings.permissions.user
+		return this._settings.owner || settings.permissions.user.name
 	},
 
 	/* Returns repository settings, such as permissions */
@@ -81,7 +90,7 @@ var repository_proto = {
 		var p = this.setting.permissions
 		if (p && p[perm])
 			return p[perm]
-		return [settings.permissions.user]
+		return [settings.permissions.user.name]
 	},
 
 	/* Checks if specified user has specified permission.
@@ -258,11 +267,13 @@ var repository_proto = {
 	data: function(target, user, permission, restrictions, force_scan) {
 		var self = this
 		var stored = self.settings[target]
+		console.log(self)
 		var defacto = when.promise(function(resolve, reject) {
 			if (stored || !force_scan)
 				return resolve([])
 			return mongo.connection.then(function(db) {
-				db.collection('packages').distinct('repositories.' + target, {
+				db.collection('packages').distinct('repositories.' +
+					package_fields[target], {
 					'repositories.repository': self.name
 				}, function(err, items) {
 					if (err) return reject(err)
@@ -291,7 +302,7 @@ var repository_proto = {
 	 * If $force_scan is set to true, returns OS versions from packages inside repository, instead of settings. In other words, it returns 'de-facto' data.
 	 */
 	osversions: function(user, permission, force_scan) {
-		return this.data('osversion', user, permission, {}, force_scan)
+		return this.data('osversions', user, permission, {}, force_scan)
 	},
 
 	/* Returns branches inside this repository
@@ -299,9 +310,9 @@ var repository_proto = {
 	 * If user and permission are specified, returns only ones on which this user has specified permission. (TODO)
 	 * If $force_scan is set to true, returns branches from packages inside repository, instead of settings. In other words, it returns 'de-facto' data.
 	 */
-	branches: function(osversion, user, permission, force_scan) {
-		var restrictions = {osversion: osversion}
-		return this.data('branch', user, permission, restrictions, force_scan)
+	branches: function(osver, user, permission, force_scan) {
+		var restrictions = {osver: osver}
+		return this.data('branches', user, permission, restrictions, force_scan)
 	},
 
 	/* Returns subgroups inside this repository
@@ -309,18 +320,18 @@ var repository_proto = {
 	 * If user and permission are specified, returns only ones on which this user has specified permission. (TODO)
 	 * If $force_scan is set to true, returns subgroups from packages inside repository, instead of settings. In other words, it returns 'de-facto' data.
 	 */
-	subgroups: function(osversion, branch, user, permission, force_scan) {
-		var restrictions = {osversion: osversion, branch: branch}
-		return this.data('branch', user, permission, restrictions, force_scan)
+	subgroups: function(osver, branch, user, permission, force_scan) {
+		var restrictions = {osver: osver, branch: branch}
+		return this.data('subgroups', user, permission, restrictions, force_scan)
 	},
 
 	/* Returns setup variants related to this repository */
 	setup_variants: function(osversions) {
 		var query = {'repository': this.name}
 		if (_.isArray(osversions))
-			query.osversions = {'$in': osversions}
+			query.osver = {'$in': osversions}
 		else if (osversions)
-			query.osversions = osversions
+			query.osver = osversions
 		return when.promise(function(resolve, reject) {
 			mongo.connection.then(function(db) {
 				db.collection('setup_variants').distinct('name', query,
@@ -358,28 +369,48 @@ var Repository = function(name) { this.name = name }
 Repository.prototype = Object.create(repository_proto)
 
 // Static
-Repository.prototype.get = function(name) {
+Repository.get = function(name) {
 	var repo = new Repository(name)
 	return repo.load()
+}
+
+Repository.create = function(name, owner, remote) {
+	var schema = {
+		name: name,
+		owner: owner || settings.permissions.user.name,
+		permissions: settings.permissions.defaults,
+		git_remote: remote,
+		osversions: [settings.repository.osver],
+		branches: [settings.repository.branch],
+		subgroups: [settings.repository.subgroup]
+	}
+	return when.promise(function(resolve, reject) {
+		if (!name)
+			reject('Repository name not specified')
+		return mongo.count('repositories', {name: name}).then(function(count) {
+			if (count)
+				return reject('Repository is already exists')
+			return mongo.add('repositories', schema).then(resolve).catch(reject)
+		}).catch(reject)
+	})
 }
 
 /* Returns repository list.
  * If user and permission are specified, return only ones on which user can specified permission
  */
-Repository.prototype.getList = function(user, permission, force_scan) {
+Repository.getList = function(user, permission, force_scan) {
 	return when.promise(function(resolve, reject) {
 		if (permission && (!user || !self.can(user, permission)))
 			return resolve([])
 
 		return mongo.connection.then(function(db) {
-			var repositories = db.collection('repositories')
-			var packages = db.collection('packages')
 			var chain = [
-				[repositories.distinct, repositories, 'name'],
-				[packages.distinct, packages, 'repositories.repository'],
+				['distinct', db.collection('packages'), 'repositories.repository'],
+				['distinct', db.collection('repositories'), 'name'],
 			]
-			function chained(values){
-				var repos = values.shift().concat(values)
+			function chained(nrepos, prepos){
+				var repos = _.uniq(nrepos.concat(prepos))
+				//console.log(nrepos, prepos)
 				if (!permission)
 					return resolve(repos)
 				var promises = _.map(repos, function(repo) {
@@ -387,7 +418,9 @@ Repository.prototype.getList = function(user, permission, force_scan) {
 				})
 				when.all(promises).then(resolve)
 			}
-			mongo.generate_chain(chain, chained, reject)()
+			utils.chain(chain, chained, reject)()
 		})
 	})
 }
+
+module.exports = Repository

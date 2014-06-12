@@ -4,9 +4,20 @@ module.exports = {
 		secret: 'secret',
 	},
 	permissions: {
-		user: 'admin',
+		user: {
+			name: 'admin',
+			email: 'admin@localhost',
+			password: 'admin',
+			group: 'admins'
+		},
 		everyone: '@everyone',
-		actions: ['read', 'write', 'admin']
+		read: 'read',
+		actions: ['read', 'write', 'admin'],
+		defaults: {
+			read: ['@everyone'],
+			write: ['@admins', '@maintainers'],
+			admin: ['admin']
+        },
 	},
 	paths: {
 		storage: ''

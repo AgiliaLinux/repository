@@ -1,6 +1,7 @@
 
 var Base = require('./Base.js').BaseRoute
 var mongo = require('../../core/mongo').adapter
+var Repository = require('../../core/repository')
 var settings = require('../../settings')
 var _ = require('underscore')
 
@@ -14,7 +15,7 @@ var render_types = [
 function List(options) {
 	Base.call(this, options)
 	this.options.url = 'browser'
-	var rparams = ['repository', 'os', 'branch', 'subgroup']
+	var rparams = ['repository', 'osver', 'branch', 'subgroup']
 	this.options.request_params = rparams
 	this.options.url_params = _.union(rparams, ['limit'])
 }
@@ -33,7 +34,7 @@ List.prototype.render = function(req) {
 			return resolve({
 				title: self.options.title,
 				repository: repository,
-				render_type: render_types[self.options.type],
+				render_type: render_types[self.options.render_type],
 				packages: packages.items,
 				count: packages.count,
 				pages: {
@@ -98,11 +99,23 @@ List.prototype.get_repository = function(req, params) {
 	return when.promise(function(resolve, reject) {
 		if (!options.show_repo)
 			return resolve(info)
-		return resolve(info)
+		return Repository.get(info.repository).then(function(repo){
+			var perm = req.user ? settings.permissions.read : null
+			return when.join(
+				Repository.getList(req.user, perm),
+				repo.osversions(req.user, perm),
+				repo.branches(info.osversion, req.user, perm),
+				repo.subgroups(info.osversion, info.branch, req.user, perm)
+			).then(function(values) {
+				info.repositories = values[0]
+				info.osversions = values[1]
+				info.branches = values[2]
+				info.subgroups = values[3]
+				return resolve(info)
+			}).catch(reject)
+		}).catch(reject)
 	})
 }
-
-
 
 module.exports = {
 	ListRoute: List
